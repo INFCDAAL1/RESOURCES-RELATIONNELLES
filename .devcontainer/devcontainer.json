@@ -14,19 +14,20 @@
 	},
 		"vscode": {
 			"extensions": [
-				 "mikestead.dotenv",
-				 "amiralizadeh9480.laravel-extra-intellisense",
-				 "ryannaddy.laravel-artisan",
-				 "onecentlin.laravel5-snippets",
-				 "onecentlin.laravel-blade",
-                "onecentlin.laravel5-snippets",
-			"ryannaddy.laravel-artisan",
-			"onecentlin.laravel-extension-pack"
+				"mikestead.dotenv",
+				"amiralizadeh9480.laravel-extra-intellisense",
+				"ryannaddy.laravel-artisan",
+				"onecentlin.laravel5-snippets",
+				"onecentlin.laravel-blade",
+				"onecentlin.laravel5-snippets",
+				"ryannaddy.laravel-artisan",
+				"onecentlin.laravel-extension-pack",
+				"cweijan.vscode-mysql-client2"
 			],
 			"settings": {}
 		}
 	},
-	"remoteUser": "root",
+	"remoteUser": "root"
 
 	//"postCreateCommand": "chown -R 1000:1000 /var/www/html 2>/dev/null || true"
 	// "forwardPorts": [],
