@@ -27,7 +27,9 @@
 				"mhutchie.git-graph",
 				"donjayamanne.githistory",
 				"GitHub.copilot",
-				"GitHub.vscode-github-actions"
+				"GitHub.vscode-github-actions",
+				"Vue.volar",
+				"bradlc.vscode-tailwindcss"
 			],
 			"settings": {}
 		}
