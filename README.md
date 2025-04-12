@@ -1,11 +1,67 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Bien démarrer le projet RR
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Prérequis
+
+### IDE
+
+Avoir un IDE qui supporte le devcontainer :
+
+- [Visual Studio Code](https://code.visualstudio.com) avec l'extension [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- [PhpStorm](https://www.jetbrains.com/phpstorm/) avec l'extension [Dev Containers](https://www.jetbrains.com/help/phpstorm/dev-containers-starting-page.html)
+
+### Docker
+
+Avoir [Docker](https://docs.docker.com/get-started/get-docker/) d'installé sur votre machine.
+
+### Git
+
+Avoir [Git](https://git-scm.com/downloads) d'installé sur votre machine.
+
+## Lancer le projet
+
+### Cloner le projet
+
+```sh
+git clone git@github.com:INFCDAAL1/RESOURCES-RELATIONNELLES.git
+```
+
+### Ouvrir le projet dans votre IDE
+
+#### Si vous utilisez Visual Studio Code
+
+1. Ouvrez le projet dans Visual Studio Code.
+2. Cliquez sur "Reopen in Container" pour ouvrir le projet dans un conteneur Docker.
+
+> Si vous ne voyez pas cette option, ouvrez la palette de commandes en appuyant sur `Ctrl` + `Shift` + `P` et tapez `Dev Container: Rebuild Container`.
+
+#### Si vous utilisez PhpStorm
+
+1. Ouvrez PhpStorm.
+2. Allez dans le menu "Dev Containers" et sélectionnez "New Dev Container".
+3. Choisissez "From Local Project".
+4. Sélectionnez le fichier `devcontainer.json` situé dans le répertoire du projet.
+
+### Initialisation de la base de donnée
+
+Faite la première migration avec :
+
+```sh
+php artisan migrate:fresh
+```
+
+Vous êtes prêt à développer !
+
+## Info
+
+Voici la convention pour les commits :
+<https://www.conventionalcommits.org/fr/v1.0.0/#sp%C3%A9cification>
+
+  [![Laravel Logo](https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg)](https://laravel.com)
+
+  [![Build Status](https://github.com/laravel/framework/workflows/tests/badge.svg)](https://github.com/laravel/framework/actions)
+  [![Total Downloads](https://img.shields.io/packagist/dt/laravel/framework)](https://packagist.org/packages/laravel/framework)
+  [![Latest Stable Version](https://img.shields.io/packagist/v/laravel/framework)](https://packagist.org/packages/laravel/framework)
+  [![License](https://img.shields.io/packagist/l/laravel/framework)](https://packagist.org/packages/laravel/framework)
 
 ## About Laravel
 

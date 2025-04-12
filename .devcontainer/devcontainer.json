@@ -22,7 +22,10 @@
 				"onecentlin.laravel5-snippets",
 				"ryannaddy.laravel-artisan",
 				"onecentlin.laravel-extension-pack",
-				"cweijan.vscode-mysql-client2"
+				"cweijan.vscode-mysql-client2",
+				"DavidAnson.vscode-markdownlint",
+				"mhutchie.git-graph",
+				"donjayamanne.githistory"
 			],
 			"settings": {}
 		}
