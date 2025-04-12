@@ -25,7 +25,9 @@
 				"cweijan.vscode-mysql-client2",
 				"DavidAnson.vscode-markdownlint",
 				"mhutchie.git-graph",
-				"donjayamanne.githistory"
+				"donjayamanne.githistory",
+				"GitHub.copilot",
+				"GitHub.vscode-github-actions"
 			],
 			"settings": {}
 		}
