@@ -1,4 +1,6 @@
-# Bien démarrer le projet RR
+# Projet RESOURCES-RELATIONNELLES
+
+[![Laravel Test](https://github.com/INFCDAAL1/RESOURCES-RELATIONNELLES/actions/workflows/laravel.yml/badge.svg)](https://github.com/INFCDAAL1/RESOURCES-RELATIONNELLES/actions/workflows/laravel.yml)
 
 ## Prérequis
 
