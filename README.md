@@ -51,6 +51,20 @@ Faite la première migration avec :
 php artisan migrate:fresh
 ```
 
+### Démarrer le serveur Vite
+
+Pour démarrer le serveur Vite, exécutez la commande suivante :
+
+```sh
+npm run dev
+```
+
+### Accéder à l'application
+
+Ouvrez votre navigateur et accédez à l'URL suivante :
+
+<http://localhost:8000>
+
 Vous êtes prêt à développer !
 
 ## Info
