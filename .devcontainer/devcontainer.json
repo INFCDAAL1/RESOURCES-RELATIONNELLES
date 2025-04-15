@@ -29,7 +29,8 @@
 				"GitHub.copilot",
 				"GitHub.vscode-github-actions",
 				"Vue.volar",
-				"bradlc.vscode-tailwindcss"
+				"bradlc.vscode-tailwindcss",
+				"nhedger.inertia"
 			],
 			"settings": {}
 		}

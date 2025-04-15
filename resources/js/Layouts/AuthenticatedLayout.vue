@@ -39,12 +39,25 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Dashboard
                                 </NavLink>
+                                <NavLink
+                                    :href="route('admin.listprofiles')"
+                                    :active="route().current('admin.listprofiles')"
+                                    v-if="$page.props.auth.user.role === 'admin'"
+                                >
+                                    Liste des Profils
+                                </NavLink>
                             </div>
+
                         </div>
 
                         <div class="hidden sm:ms-6 sm:flex sm:items-center">
+                            <!-- Show role-->
+                            <span class="text-gray-500 dark:text-gray-400">
+                                {{ $page.props.auth.user.role }}
+                            </span>
                             <!-- Settings Dropdown -->
                             <div class="relative ms-3">
+
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
                                         <span class="inline-flex rounded-md">
