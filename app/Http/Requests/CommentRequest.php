@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class CommentRequest extends FormRequest
 {
@@ -11,7 +13,7 @@ class CommentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check(); // User must be authenticated
     }
 
     /**
@@ -21,8 +23,32 @@ class CommentRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
+        $rules = [
+            'content' => [
+                'required',
+                'string',
+                'min:2',
+                'max:1000'
+            ],
         ];
+        
+        // Status can only be changed by admins
+        if (Auth::user()->isAdmin()) {
+            $rules['status'] = [
+                'sometimes',
+                'string',
+                Rule::in(['published', 'hidden', 'flagged'])
+            ];
+        }
+        
+        // Resource ID is required when creating a new comment
+        if ($this->isMethod('POST')) {
+            $rules['resource_id'] = [
+                'required',
+                'exists:resources,id'
+            ];
+        }
+
+        return $rules;
     }
 }

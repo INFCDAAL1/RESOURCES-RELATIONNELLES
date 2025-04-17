@@ -29,7 +29,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('invitations', InvitationController::class);
     Route::apiResource('messages', MessageController::class);
     Route::apiResource('resource-interactions', ResourceInteractionController::class);
-    
+    Route::get('messages/conversations', [MessageController::class, 'conversations']);
+    Route::post('messages/mark-all-read', [MessageController::class, 'markAllAsRead']);
+
     // CREATE operations for resources - authenticated users can create
     Route::post('resources', [ResourceController::class, 'store']);
 });

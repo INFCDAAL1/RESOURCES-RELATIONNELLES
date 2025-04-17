@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class VisibilityRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class VisibilityRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check(); // User must be authenticated
     }
 
     /**
@@ -21,8 +22,27 @@ class VisibilityRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
+        $rules = [
+            'name' => [
+                'required', 
+                'string', 
+                'max:255'
+            ],
+            'url' => [
+                'nullable',
+                'string',
+                'url',
+                'max:255'
+            ]
         ];
+
+        // If updating, make the unique check exclude the current record
+        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
+            $rules['name'][] = 'unique:visibilities,name,' . $this->visibility->id;
+        } else {
+            $rules['name'][] = 'unique:visibilities,name';
+        }
+
+        return $rules;
     }
 }

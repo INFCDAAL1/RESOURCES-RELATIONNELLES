@@ -4,8 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
-class OriginRequest extends FormRequest
+class ResourceInteractionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,18 +24,24 @@ class OriginRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'libelle' => [
-                'required', 
-                'string', 
-                'max:255'
-            ]
+            'notes' => [
+                'nullable',
+                'string',
+                'max:500'
+            ],
         ];
-
-        // If updating, make the unique check exclude the current record
-        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
-            $rules['libelle'][] = 'unique:origins,libelle,' . $this->origin->id;
-        } else {
-            $rules['libelle'][] = 'unique:origins,libelle';
+        
+        // Required fields when creating
+        if ($this->isMethod('POST')) {
+            $rules['resource_id'] = [
+                'required',
+                'exists:resources,id'
+            ];
+            $rules['type'] = [
+                'required',
+                'string',
+                Rule::in(['favorite', 'saved', 'exploited'])
+            ];
         }
 
         return $rules;
