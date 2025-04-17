@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { Head } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { User } from '@/types';
+import { Head } from '@inertiajs/vue3';
 defineProps<{
     users: User[];
 }>();
@@ -23,16 +24,22 @@ function formatDate(date: Date): string {
                     <th class="border border-gray-300 px-4 py-2">Email</th>
                     <th class="border border-gray-300 px-4 py-2">Rôle</th>
                     <th class="border border-gray-300 px-4 py-2">Actif</th>
-                    <th class="border border-gray-300 px-4 py-2">Date de Création</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="user in users" :key="user.id">
-                    <td class="border border-gray-300 px-4 py-2">{{ user.name }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ user.email }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ user.role }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ user.is_active ? 'Oui' : 'Non' }}</td>
-                    <td class="border border-gray-300 px-4 py-2">{{ formatDate(user.created_at) }}</td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        {{ user.name }}
+                    </td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        {{ user.email }}
+                    </td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        {{ user.role }}
+                    </td>
+                    <td class="border border-gray-300 px-4 py-2">
+                        {{ user.is_active ? 'Oui' : 'Non' }}
+                    </td>
                 </tr>
             </tbody>
         </table>
