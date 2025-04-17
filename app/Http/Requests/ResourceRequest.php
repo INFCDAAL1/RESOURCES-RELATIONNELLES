@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class ResourceRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class ResourceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check(); // User must be authenticated
     }
 
     /**
@@ -21,8 +22,21 @@ class ResourceRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
+        $rules = [
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'published' => 'boolean',
+            'type_id' => 'required|exists:types,id',
+            'category_id' => 'required|exists:categories,id',
+            'visibility_id' => 'required|exists:visibilities,id',
+            'origin_id' => 'required|exists:origins,id',
         ];
+
+        // If creating a new resource or updating the file
+        if ($this->isMethod('POST') || $this->hasFile('file')) {
+            $rules['file'] = 'required|file|mimes:csv,pdf,doc,docx|max:10240'; // 10MB max
+        }
+
+        return $rules;
     }
 }
