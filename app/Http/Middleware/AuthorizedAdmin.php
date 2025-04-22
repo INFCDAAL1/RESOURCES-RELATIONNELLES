@@ -19,7 +19,7 @@ class AuthorizedAdmin
         // Vérifiez si l'utilisateur est authentifié
         if (!Auth::check()) {
             // return redirect()->route('login'); // Redirige vers la page de connexion si non authentifié
-            abort(403, 'Unauthorized action.'); // Interdit l'accès si non authentifié
+            abort(401, 'Unauthorized action.'); // Interdit l'accès si non authentifié
         }
 
         // Vérifiez si l'utilisateur est actif
