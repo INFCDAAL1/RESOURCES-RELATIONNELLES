@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
-class Authorized
+class AuthorizedAdmin
 {
     /**
      * Handle an incoming request.
@@ -28,9 +28,9 @@ class Authorized
         }
 
         // // Vérifiez si l'utilisateur a le rôle requis
-        // if (!Auth::user()->isAdmin()) {
-        //     abort(403, 'Unauthorized action.'); // Interdit l'accès si le rôle ne correspond pas
-        // }
+        if (!Auth::user()->isAdmin()) {
+            abort(403, 'Unauthorized action.'); // Interdit l'accès si le rôle ne correspond pas
+        }
 
         return $next($request);
     }

@@ -10,9 +10,19 @@ use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ResourceInteractionController;
+use App\Http\Controllers\AuthController;
+
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login']);
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('me', [AuthController::class, 'me']);
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+});
 
 // Routes nécessitant uniquement l'authentification
-Route::middleware('auth:api')->group(function () {
+Route::middleware('authorized')->group(function () {
     // READ operations - get resources
     Route::get('resources', [ResourceController::class, 'index']);
     Route::get('resources/{resource}', [ResourceController::class, 'show']);
@@ -37,7 +47,7 @@ Route::middleware('auth:api')->group(function () {
 });
 
 // Routes nécessitant des privilèges admin
-Route::middleware(['auth:api', 'authorized:admin'])->group(function () {
+Route::middleware(['authorized:admin'])->group(function () {
     // Admin operations for resources
     Route::put('resources/{resource}', [ResourceController::class, 'update']);
     Route::patch('resources/{resource}', [ResourceController::class, 'update']);
