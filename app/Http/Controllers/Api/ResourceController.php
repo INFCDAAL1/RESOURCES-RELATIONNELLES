@@ -13,15 +13,6 @@ use Illuminate\Support\Facades\Storage;
 class ResourceController extends Controller
 {
     /**
-     * Constructor to apply middleware
-     */
-    public function __construct()
-    {
-        $this->middleware('auth:api'); // All routes require authentication
-        $this->middleware('authorized:admin')->only(['destroy', 'update']); // Only admin can delete/update
-    }
-
-    /**
      * Display a listing of the resources.
      */
     public function index()
