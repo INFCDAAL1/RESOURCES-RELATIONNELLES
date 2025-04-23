@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ResourceInteractionController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Api\UserListController;
+use App\Http\Controllers\Api\UserController;
 
 Route::get('public-resources', [PublicResourceController::class, 'index']);
 Route::post('register', [AuthController::class, 'register']);
@@ -46,8 +46,8 @@ Route::middleware('Authorized')->group(function () {
     Route::post('messages/mark-all-read', [MessageController::class, 'markAllAsRead']);
 
     // User management - get a list of users
-    Route::get('/users/list', [UserListController::class, 'index']);
-    Route::get('/users/search', [UserListController::class, 'search']);
+    Route::get('/users/list', [UserController::class, 'index']);
+    Route::get('/users/search', [UserController::class, 'search']);
 
     // CREATE operations for resources - authenticated users can create
     Route::post('resources', [ResourceController::class, 'store']);
