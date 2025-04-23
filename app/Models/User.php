@@ -147,6 +147,13 @@ class User extends Authenticatable implements JWTSubject
             ->where('type', 'favorite')
             ->with('resource');
     }
+
+    public function favoriteResourcesSECOND()
+    {
+        return $this->belongsToMany(ResourceInteraction::class)
+            ->where('type', 'favorite')
+            ->with('resource');
+    }
     
     /**
      * Get the user's saved resources.
@@ -166,5 +173,15 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(ResourceInteraction::class)
             ->where('type', 'exploited')
             ->with('resource');
+    }
+
+    public function addFavorite(Resource $resource)
+    {
+        $this->favoriteResources()->attach($resource);
+    }
+
+    public function removeFavorite(Resource $resource)
+    {
+        $this->favoriteResources()->detach($resource);
     }
 }

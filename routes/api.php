@@ -26,6 +26,7 @@ Route::middleware('Authorized')->group(function () {
 Route::middleware('Authorized')->group(function () {
     // READ operations - get resources
     Route::get('resources', [ResourceController::class, 'index']);
+    Route::post('favorite/{resource}', [ResourceController::class, 'favorite']);
     Route::get('resources/{resource}', [ResourceController::class, 'show']);
     Route::get('resources/{resource}/download', [ResourceController::class, 'download'])->name('resources.download');
     

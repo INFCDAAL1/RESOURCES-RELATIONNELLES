@@ -132,4 +132,28 @@ class ResourceController extends Controller
             $resource->name . '.' . pathinfo($resource->file_path, PATHINFO_EXTENSION)
         );
     }
+    
+    /**
+     * Favorite a resource.
+     */
+    public function favorite(Request $request, Resource $resource)
+    {
+        $validated = $request->validate([
+            'setTo' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+
+        if ($validated['setTo']) {
+            // Add to favorites
+            $user->addFavorite($resource);
+        } else {
+            // Remove from favorites
+            $user->removeFavorite($resource);
+        }
+
+        return response()->json([
+            'message' => $validated['setTo'] ? 'Resource added to favorites' : 'Resource removed from favorites'
+        ]);
+    }
 }
