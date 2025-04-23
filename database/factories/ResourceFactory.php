@@ -35,11 +35,9 @@ class ResourceFactory extends Factory
             'published' => true,
             'validated' => true,
             'link' => $this->faker->url(),
-            'type_id' => Type::factory(),
             'category_id' => Category::factory(),
             'visibility_id' => Visibility::factory(),
             'user_id' => User::factory(),
-            'origin_id' => Origin::factory(),
         ];
     }
 
