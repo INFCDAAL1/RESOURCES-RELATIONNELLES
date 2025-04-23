@@ -26,10 +26,8 @@ class ResourceRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'published' => 'boolean',
-            'type_id' => 'required|exists:types,id',
             'category_id' => 'required|exists:categories,id',
             'visibility_id' => 'required|exists:visibilities,id',
-            'origin_id' => 'required|exists:origins,id',
         ];
 
         // If creating a new resource or updating the file
