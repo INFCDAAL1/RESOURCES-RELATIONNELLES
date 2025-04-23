@@ -3,48 +3,58 @@
 namespace Database\Factories;
 
 use App\Models\Comment;
-use App\Models\User;
 use App\Models\Resource;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Comment>
+ */
 class CommentFactory extends Factory
 {
     protected $model = Comment::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $statuses = ['published', 'hidden', 'flagged'];
+        
         return [
-            'content' => $this->faker->paragraph(rand(1, 3)),
-            'status' => 'published',
-            'user_id' => User::factory(),
-            'resource_id' => Resource::factory(),
-            'created_at' => $this->faker->dateTimeBetween('-6 months', 'now'),
-            'updated_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
+            'content' => $this->faker->paragraph(),
+            'status' => $this->faker->randomElement($statuses),
+            'resource_id' => Resource::inRandomOrder()->value('id') ?? 1,
+            'user_id' => User::inRandomOrder()->value('id') ?? 1,
+            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'updated_at' => fn (array $attributes) => $attributes['created_at'],
         ];
     }
-
+    
     /**
-     * Configure the comment to be published.
+     * Indicate that the comment is published.
      */
-    public function published(): static
+    public function published(): Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'published',
         ]);
     }
-
+    
     /**
-     * Configure the comment to be pending.
+     * Indicate that the comment is hidden.
      */
-    public function pending(): static
+    public function hidden(): Factory
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'pending',
+            'status' => 'hidden',
+        ]);
+    }
+    
+    /**
+     * Indicate that the comment is flagged.
+     */
+    public function flagged(): Factory
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'flagged',
         ]);
     }
 }
