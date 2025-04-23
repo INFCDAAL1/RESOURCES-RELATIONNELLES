@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             TypeSeeder::class,
             ResourceSeeder::class, // si tu veux que les ressources arrivent après
+            CommentSeeder::class,
         ]);
 
         // User::factory()->create([
