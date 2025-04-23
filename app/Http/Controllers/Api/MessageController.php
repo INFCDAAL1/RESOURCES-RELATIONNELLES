@@ -143,7 +143,6 @@ class MessageController extends Controller
      */
     public function conversations()
     {
-        // Find users the current user has exchanged messages with
         $sentToUsers = Message::where('sender_id', Auth::id())
                         ->select('receiver_id as user_id')
                         ->distinct();
@@ -156,10 +155,8 @@ class MessageController extends Controller
         
         $users = User::whereIn('id', $userIds)->get();
         
-        // Pour chaque utilisateur, récupérer tous les messages triés par date
-        $conversationsWithAllMessages = $users->map(function($user) {
-            // Récupérer tous les messages échangés avec cet utilisateur
-            $messages = Message::where(function($query) use ($user) {
+        $conversations = $users->map(function($user) {
+            $lastMessage = Message::where(function($query) use ($user) {
                     $query->where(function($q) use ($user) {
                         $q->where('sender_id', Auth::id())
                         ->where('receiver_id', $user->id);
@@ -168,46 +165,45 @@ class MessageController extends Controller
                         ->where('receiver_id', Auth::id());
                     });
                 })
-                ->with('sender')  // Chargement de la relation sender pour l'accès aux infos
-                ->orderBy('created_at', 'asc')  // Messages du plus ancien au plus récent
-                ->get();
+                ->with('sender')
+                ->latest()  
+                ->first(); 
             
-            // Compter les messages non lus
             $unreadCount = Message::where('sender_id', $user->id)
                             ->where('receiver_id', Auth::id())
                             ->where('read', false)
                             ->count();
             
-            // Transformer les messages pour le format attendu
-            $formattedMessages = $messages->map(function($message) {
-                return [
-                    'id' => $message->id,
-                    'content' => $message->content,
-                    'read' => $message->read,
+            $formattedMessage = null;
+            if ($lastMessage) {
+                $formattedMessage = [
+                    'id' => $lastMessage->id,
+                    'content' => $lastMessage->content,
+                    'read' => $lastMessage->read,
                     'sender' => [
-                        'id' => $message->sender->id,
-                        'name' => $message->sender->name
+                        'id' => $lastMessage->sender->id,
+                        'name' => $lastMessage->sender->name
                     ],
-                    'created_at' => $message->created_at,
-                    'updated_at' => $message->updated_at
+                    'created_at' => $lastMessage->created_at,
+                    'updated_at' => $lastMessage->updated_at
                 ];
-            });
+            }
             
             return [
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name
                 ],
-                'messages' => $formattedMessages,
+                'last_message' => $formattedMessage,
                 'unread_count' => $unreadCount,
-                'last_activity' => $messages->max('created_at')  // Date du message le plus récent
+                'last_activity' => $lastMessage ? $lastMessage->created_at : null
             ];
         })
-        ->sortByDesc('last_activity')  // Trier les conversations par dernière activité
-        ->values();  // Réindexer le tableau (pour JSON)
+        ->sortByDesc('last_activity')  
+        ->values();
         
         return response()->json([
-            'conversations' => $conversationsWithAllMessages
+            'conversations' => $conversations
         ]);
     }
     
