@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ResourceInteractionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\UserListController;
 
+Route::get('public-resources', [PublicResourceController::class, 'index']);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 

@@ -15,18 +15,12 @@ class ResourceController extends Controller
     /**
      * Display a listing of the resources.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $resources = Resource::with(['type', 'category', 'visibility', 'user', 'origin'])
-            ->when(!Auth::user()->isAdmin(), function ($query) {
-                // Non-admin users can only see published and validated resources
-                // or resources they own
-                return $query->where(function ($q) {
-                    $q->where('published', true)
-                      ->where('validated', true)
-                      ->orWhere('user_id', Auth::id());
-                });
-            })
+        $resources = Resource::with(['category', 'visibility', 'user', 'type'])
+            ->where('published', true)
+            ->where('validated', true)
+            ->latest()
             ->paginate(10);
 
         return ResourceResource::collection($resources);
