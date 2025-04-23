@@ -149,41 +149,65 @@ class MessageController extends Controller
                         ->distinct();
                         
         $receivedFromUsers = Message::where('receiver_id', Auth::id())
-                              ->select('sender_id as user_id')
-                              ->distinct();
+                            ->select('sender_id as user_id')
+                            ->distinct();
         
         $userIds = $sentToUsers->union($receivedFromUsers)->pluck('user_id');
         
         $users = User::whereIn('id', $userIds)->get();
         
-        // For each user, get the last message and unread count
-        $usersWithMessageInfo = $users->map(function($user) {
-            $lastMessage = Message::where(function($query) use ($user) {
-                $query->where(function($q) use ($user) {
-                    $q->where('sender_id', Auth::id())
-                      ->where('receiver_id', $user->id);
-                })->orWhere(function($q) use ($user) {
-                    $q->where('sender_id', $user->id)
-                      ->where('receiver_id', Auth::id());
-                });
-            })
-            ->latest()
-            ->first();
+        // Pour chaque utilisateur, récupérer tous les messages triés par date
+        $conversationsWithAllMessages = $users->map(function($user) {
+            // Récupérer tous les messages échangés avec cet utilisateur
+            $messages = Message::where(function($query) use ($user) {
+                    $query->where(function($q) use ($user) {
+                        $q->where('sender_id', Auth::id())
+                        ->where('receiver_id', $user->id);
+                    })->orWhere(function($q) use ($user) {
+                        $q->where('sender_id', $user->id)
+                        ->where('receiver_id', Auth::id());
+                    });
+                })
+                ->with('sender')  // Chargement de la relation sender pour l'accès aux infos
+                ->orderBy('created_at', 'asc')  // Messages du plus ancien au plus récent
+                ->get();
             
+            // Compter les messages non lus
             $unreadCount = Message::where('sender_id', $user->id)
-                             ->where('receiver_id', Auth::id())
-                             ->where('read', false)
-                             ->count();
+                            ->where('receiver_id', Auth::id())
+                            ->where('read', false)
+                            ->count();
+            
+            // Transformer les messages pour le format attendu
+            $formattedMessages = $messages->map(function($message) {
+                return [
+                    'id' => $message->id,
+                    'content' => $message->content,
+                    'read' => $message->read,
+                    'sender' => [
+                        'id' => $message->sender->id,
+                        'name' => $message->sender->name
+                    ],
+                    'created_at' => $message->created_at,
+                    'updated_at' => $message->updated_at
+                ];
+            });
             
             return [
-                'user' => new UserResource($user),
-                'last_message' => $lastMessage ? new MessageResource($lastMessage) : null,
-                'unread_count' => $unreadCount
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name
+                ],
+                'messages' => $formattedMessages,
+                'unread_count' => $unreadCount,
+                'last_activity' => $messages->max('created_at')  // Date du message le plus récent
             ];
-        });
+        })
+        ->sortByDesc('last_activity')  // Trier les conversations par dernière activité
+        ->values();  // Réindexer le tableau (pour JSON)
         
         return response()->json([
-            'conversations' => $usersWithMessageInfo
+            'conversations' => $conversationsWithAllMessages
         ]);
     }
     
