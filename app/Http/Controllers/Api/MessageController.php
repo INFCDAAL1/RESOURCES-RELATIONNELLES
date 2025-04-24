@@ -20,36 +20,34 @@ class MessageController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Message::query();
-        
-        // Filter: conversation with specific user
         if ($request->has('user_id')) {
             $otherUserId = $request->input('user_id');
             
-            $query->where(function($q) use ($otherUserId) {
-                $q->where(function($inner) use ($otherUserId) {
-                    $inner->where('sender_id', Auth::id())
-                          ->where('receiver_id', $otherUserId);
-                })->orWhere(function($inner) use ($otherUserId) {
-                    $inner->where('sender_id', $otherUserId)
-                          ->where('receiver_id', Auth::id());
-                });
-            });
+            $messages = Message::where(function($q) use ($otherUserId) {
+                    $q->where([
+                        'sender_id' => Auth::id(),
+                        'receiver_id' => $otherUserId
+                    ])->orWhere([
+                        'sender_id' => $otherUserId,
+                        'receiver_id' => Auth::id()
+                    ]);
+                })
+                ->with(['sender:id,name,email', 'receiver:id,name,email'])
+                ->latest()
+                ->paginate(15);
+                
+            Message::where([
+                'sender_id' => $otherUserId,
+                'receiver_id' => Auth::id(),
+                'read' => false
+            ])->update(['read' => true]);
         } else {
-            // Default: messages sent or received by current user
-            $query->where(function($q) {
-                $q->where('sender_id', Auth::id())
-                  ->orWhere('receiver_id', Auth::id());
-            });
+            $messages = Message::where('sender_id', Auth::id())
+                ->orWhere('receiver_id', Auth::id())
+                ->with(['sender:id,name,email', 'receiver:id,name,email'])
+                ->latest()
+                ->paginate(15);
         }
-        
-        // Include relationships
-        $query->with(['sender', 'receiver']);
-        
-        // Sort by newest first
-        $query->latest();
-        
-        $messages = $query->paginate(15);
         
         return MessageResource::collection($messages);
     }
