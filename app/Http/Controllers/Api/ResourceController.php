@@ -150,46 +150,54 @@ class ResourceController extends Controller
     public function getAuthorizedResources(Request $request)
     {
         $user = Auth::user();
+        
+        $resources = Resource::with(['category', 'visibility', 'user', 'type'])
+            ->where('user_id', $user->id ?? null)
+            ->orWhere(function ($query) use ($user) {
+                $query
+                    ->where('published', true)
+                    ->where('validated', true)
+                    ->where(function ($query) use ($user) {
+                        $query
+                            ->where('visibility_id', 1)
+                            ->orWhere(function ($query) use ($user) {
+                                $query
+                                    ->where('visibility_id', 3)
+                                    ->whereHas('invitations', function ($query) use ($user) {
+                                        $query->where('receiver_id', $user->id ?? null)
+                                            ->where('status', 'accepted');
+                                    });
+                            });
+                    });
+            });
 
-        if ($user && ($user->isAdmin() || $user->isModo())) {
-            $resources = Resource::with(['category', 'visibility', 'user', 'type'])
-                ->latest()
-                ->get();
-        } else {
-            $resources = Resource::with(['category', 'visibility', 'user', 'type'])
-                ->where('user_id', $user->id ?? null)
-                ->orWhere(function ($query) use ($user) {
-                    $query
-                        ->where('published', true)
-                        ->where('validated', true)
-                        ->where(function ($query) use ($user) {
-                            $query
-                                ->where('visibility_id', 1)
-                                ->orWhere(function ($query) use ($user) {
-                                    $query
-                                        ->where('visibility_id', 3)
-                                        ->whereHas('invitations', function ($query) use ($user) {
-                                            $query->where('receiver_id', $user->id ?? null)
-                                                ->where('status', 'accepted');
-                                        });
-                                });
-                        });
-                })
-                ->latest()
-                ->get();
+        if($user && ($user->isAdmin() || $user->isModo())) {
+            $resources = $resources->orWhere('published', true);
         }
+
+        $resources = $resources
+            ->latest()
+            ->get();
 
         return ResourceResource::collection($resources);
     }
 
-    public function validateResource(Resource $resource)
+    public function validateResource(Request $request, Resource $resource)
     {
         $user = Auth::user();
         if (!$user || (!$user->isAdmin() && !$user->isModo())) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $resource->validated = true;
+        $validated = $request->validate([
+            'setTo' => 'required|boolean',
+        ]);
+
+        if ($validated['setTo']) {
+            $resource->validated = true;
+        } else {
+            $resource->validated = false;
+        }
         $resource->save();
 
         return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
