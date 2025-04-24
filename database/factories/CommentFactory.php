@@ -23,7 +23,7 @@ class CommentFactory extends Factory
             'status' => $this->faker->randomElement($statuses),
             'resource_id' => Resource::inRandomOrder()->value('id') ?? 1,
             'user_id' => User::inRandomOrder()->value('id') ?? 1,
-            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'created_at' => $this->faker->dateTimeBetween('-1 year', '-1 day'),
             'updated_at' => fn (array $attributes) => $attributes['created_at'],
         ];
     }

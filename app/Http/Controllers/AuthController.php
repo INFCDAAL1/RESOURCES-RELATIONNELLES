@@ -23,6 +23,8 @@ class AuthController extends Controller
             'password' => bcrypt($validated['password']),
         ]);
 
+        $user = User::where('email', $validated['email'])->first();
+
         $token = JWTAuth::fromUser($user);
 
         return response()->json(compact('user', 'token'));
