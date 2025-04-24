@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\StatsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ResourceController;
 use App\Http\Controllers\Api\TypeController;
@@ -42,14 +43,14 @@ Route::middleware('Authorized')->group(function () {
     Route::delete('resources/{resource}', [ResourceController::class, 'destroy']);
 
     Route::post('resources/{resource}/validate', [ResourceController::class, 'validateResource']);
-    
+
     Route::get('/messages', [MessageController::class, 'index']);
     Route::get('/messages/{receiverId}', [MessageController::class, 'getConversation']);
     Route::post('/messages', [MessageController::class, 'store']);
     Route::put('/messages/{message}', [MessageController::class, 'update']);
     Route::delete('/messages/{message}', [MessageController::class, 'destroy']);
 
-    
+
     // User interactions
     Route::apiResource('comments', CommentController::class);
     Route::apiResource('invitations', InvitationController::class);
