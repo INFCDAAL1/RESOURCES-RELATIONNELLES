@@ -18,10 +18,20 @@ class UserController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $users = User::select(['id', 'name'])
+        if (Auth::user()->isAdmin()) {
+            $users = User::select(['id', 'name', 'email', 'role'])
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get();
+        
+        }
+        else {
+            $users = User::select(['id', 'name'])
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
+        }
+            
 
         return response()->json([
             'data' => $users
