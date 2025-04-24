@@ -15,18 +15,12 @@ class ResourceController extends Controller
     /**
      * Display a listing of the resources.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $resources = Resource::with(['type', 'category', 'visibility', 'user', 'origin'])
-            ->when(!Auth::user()->isAdmin(), function ($query) {
-                // Non-admin users can only see published and validated resources
-                // or resources they own
-                return $query->where(function ($q) {
-                    $q->where('published', true)
-                      ->where('validated', true)
-                      ->orWhere('user_id', Auth::id());
-                });
-            })
+        $resources = Resource::with(['category', 'visibility', 'user', 'type'])
+            ->where('published', true)
+            ->where('validated', true)
+            ->latest()
             ->paginate(10);
 
         return ResourceResource::collection($resources);
@@ -131,5 +125,29 @@ class ResourceController extends Controller
             $resource->file_path, 
             $resource->name . '.' . pathinfo($resource->file_path, PATHINFO_EXTENSION)
         );
+    }
+    
+    /**
+     * Favorite a resource.
+     */
+    public function favorite(Request $request, Resource $resource)
+    {
+        $validated = $request->validate([
+            'setTo' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+
+        if ($validated['setTo']) {
+            // Add to favorites
+            $user->addFavorite($resource);
+        } else {
+            // Remove from favorites
+            $user->removeFavorite($resource);
+        }
+
+        return response()->json([
+            'message' => $validated['setTo'] ? 'Resource added to favorites' : 'Resource removed from favorites'
+        ]);
     }
 }

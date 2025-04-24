@@ -143,7 +143,14 @@ class User extends Authenticatable implements JWTSubject
      */
     public function favoriteResources()
     {
-        return $this->hasMany(ResourceInteraction::class)
+        return $this->belongsToMany(Resource::class, 'resource_interactions')
+            ->withPivot('type', 'notes')
+            ->wherePivot('type', 'favorite');
+    }
+
+    public function favoriteResourcesSECOND()
+    {
+        return $this->belongsToMany(ResourceInteraction::class)
             ->where('type', 'favorite')
             ->with('resource');
     }
@@ -166,5 +173,37 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(ResourceInteraction::class)
             ->where('type', 'exploited')
             ->with('resource');
+    }
+
+    /**
+     * Add a resource to user's favorites
+     */
+    public function addFavorite(Resource $resource)
+    {
+        // Vérifiez si l'interaction existe déjà
+        $existing = ResourceInteraction::where('user_id', $this->id)
+            ->where('resource_id', $resource->id)
+            ->where('type', 'favorite')
+            ->first();
+            
+        if (!$existing) {
+            ResourceInteraction::create([
+                'user_id' => $this->id,
+                'resource_id' => $resource->id,
+                'type' => 'favorite',
+                'notes' => null
+            ]);
+        }
+    }
+
+    /**
+     * Remove a resource from user's favorites
+     */
+    public function removeFavorite(Resource $resource)
+    {
+        ResourceInteraction::where('user_id', $this->id)
+            ->where('resource_id', $resource->id)
+            ->where('type', 'favorite')
+            ->delete();
     }
 }
