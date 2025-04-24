@@ -88,7 +88,7 @@ class MessageController extends Controller
             return $bTime - $aTime;
         });
 
-        return response()->json($conversations);
+        return response()->json(["data" => $conversations]);
     }
 
     /**
