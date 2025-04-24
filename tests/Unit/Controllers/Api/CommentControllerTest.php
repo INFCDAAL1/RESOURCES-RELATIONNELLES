@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Mockery;
 use Tests\TestCase;
 
@@ -29,20 +30,25 @@ class CommentControllerTest extends TestCase
         $this->user = User::factory()->create(['role' => 'admin']);
         
         // Créer les dépendances nécessaires pour les ressources
-        $type = \App\Models\Type::factory()->create();
         $category = \App\Models\Category::factory()->create();
         $visibility = \App\Models\Visibility::factory()->create();
-        $origin = \App\Models\Origin::factory()->create();
         
-        // Créer une ressource sans les champs problématiques
-        $this->resource = Resource::factory()->create([
-            'type_id' => $type->id,
+        // Créer une ressource directement avec DB pour éviter les factories
+        $resourceId = DB::table('resources')->insertGetId([
+            'name' => 'Test Resource',
+            'description' => 'Description for test',
+            'published' => true,
+            'validated' => true,
             'category_id' => $category->id,
             'visibility_id' => $visibility->id,
             'user_id' => $this->user->id,
-            'origin_id' => $origin->id,
             'link' => 'https://example.com/resource',
+            'file_path' => null,
+            'created_at' => now(),
+            'updated_at' => now()
         ]);
+        
+        $this->resource = Resource::find($resourceId);
     }
 
     public function tearDown(): void

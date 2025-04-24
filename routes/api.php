@@ -43,14 +43,17 @@ Route::middleware('Authorized')->group(function () {
 
     Route::post('resources/{resource}/validate', [ResourceController::class, 'validateResource']);
     
+    Route::get('/messages', [MessageController::class, 'index']);
+    Route::get('/messages/{receiverId}', [MessageController::class, 'getConversation']);
+    Route::post('/messages', [MessageController::class, 'store']);
+    Route::put('/messages/{message}', [MessageController::class, 'update']);
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy']);
+
     
     // User interactions
     Route::apiResource('comments', CommentController::class);
     Route::apiResource('invitations', InvitationController::class);
-    Route::apiResource('messages', MessageController::class);
     Route::apiResource('resource-interactions', ResourceInteractionController::class);
-    Route::get('messages/conversations', [MessageController::class, 'conversations']);
-    Route::post('messages/mark-all-read', [MessageController::class, 'markAllAsRead']);
 
     // User management - get a list of users
     Route::get('/users/list', [UserController::class, 'index']);
