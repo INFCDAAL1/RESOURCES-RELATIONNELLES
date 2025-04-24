@@ -29,10 +29,10 @@ class ResourceInteractionControllerTest extends TestCase
         $this->user = User::factory()->create(['role' => 'user']);
         
         // Créer les dépendances nécessaires pour les ressources
-        $type = \App\Models\Type::factory()->create();
-        $category = \App\Models\Category::factory()->create();
-        $visibility = \App\Models\Visibility::factory()->create();
-        $origin = \App\Models\Origin::factory()->create();
+        $type = \App\Models\Type::factory()->create(['name' => 'Type-' . uniqid()]);
+        $category = \App\Models\Category::factory()->create(['name' => 'Category-' . uniqid()]);
+        $visibility = \App\Models\Visibility::factory()->create(['name' => 'Visibility-' . uniqid()]);
+        $origin = \App\Models\Origin::factory()->create(['libelle' => 'Origin-' . uniqid()]);
         
         // Créer une ressource
         $this->resource = Resource::factory()->create([
@@ -65,8 +65,10 @@ class ResourceInteractionControllerTest extends TestCase
         request()->merge(['resource_id' => $this->resource->id]);
         
         // Mock Auth
-        Auth::shouldReceive('user->isAdmin')
-            ->andReturn(false);
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
+        
         Auth::shouldReceive('id')
             ->andReturn($this->user->id);
         
@@ -167,8 +169,11 @@ class ResourceInteractionControllerTest extends TestCase
         // Mock Auth
         Auth::shouldReceive('id')
             ->andReturn($this->user->id);
-        Auth::shouldReceive('user->isAdmin')
-            ->andReturn(false);
+            
+        // Correction pour Auth::user()->isAdmin()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->show($interaction);
@@ -193,8 +198,11 @@ class ResourceInteractionControllerTest extends TestCase
         // Mock Auth (admin)
         Auth::shouldReceive('id')
             ->andReturn($this->user->id);
-        Auth::shouldReceive('user->isAdmin')
-            ->andReturn(true);
+            
+        // Correction pour Auth::user()->isAdmin()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(true);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->show($interaction);
@@ -219,8 +227,11 @@ class ResourceInteractionControllerTest extends TestCase
         // Mock Auth (non-admin, non-propriétaire)
         Auth::shouldReceive('id')
             ->andReturn($this->user->id);
-        Auth::shouldReceive('user->isAdmin')
-            ->andReturn(false);
+            
+        // Correction pour Auth::user()->isAdmin()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->show($interaction);
@@ -254,6 +265,11 @@ class ResourceInteractionControllerTest extends TestCase
         // Mock Auth
         Auth::shouldReceive('id')
             ->andReturn($this->user->id);
+            
+        // Correction: Ajouter le mock pour Auth::user()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->update($request, $interaction);
@@ -291,6 +307,11 @@ class ResourceInteractionControllerTest extends TestCase
         // Mock Auth (non-propriétaire)
         Auth::shouldReceive('id')
             ->andReturn($this->user->id);
+            
+        // Correction: Ajouter le mock pour Auth::user()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->update($request, $interaction);
@@ -313,8 +334,11 @@ class ResourceInteractionControllerTest extends TestCase
         // Mock Auth
         Auth::shouldReceive('id')
             ->andReturn($this->user->id);
-        Auth::shouldReceive('user->isAdmin')
-            ->andReturn(false);
+            
+        // Correction pour Auth::user()->isAdmin()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->destroy($interaction);
@@ -340,8 +364,11 @@ class ResourceInteractionControllerTest extends TestCase
         // Mock Auth (admin)
         Auth::shouldReceive('id')
             ->andReturn($this->user->id);
-        Auth::shouldReceive('user->isAdmin')
-            ->andReturn(true);
+            
+        // Correction pour Auth::user()->isAdmin()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(true);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->destroy($interaction);
