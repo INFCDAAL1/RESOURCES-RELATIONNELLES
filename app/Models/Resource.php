@@ -65,7 +65,66 @@ class Resource extends Model
         return null;
     }
 
-    // Existing relationships...
+    /**
+     * Get the type that owns this resource.
+     */
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(Type::class);
+    }
+
+    /**
+     * Get the category that owns this resource.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the visibility that owns this resource.
+     */
+    public function visibility(): BelongsTo
+    {
+        return $this->belongsTo(Visibility::class);
+    }
+
+    /**
+     * Get the user that owns this resource.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the origin that owns this resource.
+     */
+    public function origin(): BelongsTo
+    {
+        return $this->belongsTo(Origin::class);
+    }
+
+    /**
+     * Get the comments for this resource.
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Get the interactions for this resource.
+     */
+    public function interactions(): HasMany
+    {
+        return $this->hasMany(ResourceInteraction::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
 
     /**
      * Handle file upload for the resource.

@@ -7,11 +7,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
+
+    // JWT methods
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -57,7 +69,12 @@ class User extends Authenticatable
      */
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->role === 'superadmin';
+    }
+
+    public function isModo()
+    {
+        return $this->role === 'modo';
     }
 
     /**
@@ -131,7 +148,14 @@ class User extends Authenticatable
      */
     public function favoriteResources()
     {
-        return $this->hasMany(ResourceInteraction::class)
+        return $this->belongsToMany(Resource::class, 'resource_interactions')
+            ->withPivot('type', 'notes')
+            ->wherePivot('type', 'favorite');
+    }
+
+    public function favoriteResourcesSECOND()
+    {
+        return $this->belongsToMany(ResourceInteraction::class)
             ->where('type', 'favorite')
             ->with('resource');
     }
@@ -154,5 +178,37 @@ class User extends Authenticatable
         return $this->hasMany(ResourceInteraction::class)
             ->where('type', 'exploited')
             ->with('resource');
+    }
+
+    /**
+     * Add a resource to user's favorites
+     */
+    public function addFavorite(Resource $resource)
+    {
+        // Vérifiez si l'interaction existe déjà
+        $existing = ResourceInteraction::where('user_id', $this->id)
+            ->where('resource_id', $resource->id)
+            ->where('type', 'favorite')
+            ->first();
+            
+        if (!$existing) {
+            ResourceInteraction::create([
+                'user_id' => $this->id,
+                'resource_id' => $resource->id,
+                'type' => 'favorite',
+                'notes' => null
+            ]);
+        }
+    }
+
+    /**
+     * Remove a resource from user's favorites
+     */
+    public function removeFavorite(Resource $resource)
+    {
+        ResourceInteraction::where('user_id', $this->id)
+            ->where('resource_id', $resource->id)
+            ->where('type', 'favorite')
+            ->delete();
     }
 }
