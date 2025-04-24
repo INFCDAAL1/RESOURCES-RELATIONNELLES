@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
     /**
@@ -23,7 +23,7 @@ class UserController extends Controller
         ->where('is_active', true)
         ->orderBy('name')
         ->get();
-        
+
         }
         else {
             $users = User::select(['id', 'name'])
@@ -31,7 +31,7 @@ class UserController extends Controller
             ->orderBy('name')
             ->get();
         }
-            
+
 
         return response()->json([
             'data' => $users
@@ -47,7 +47,7 @@ class UserController extends Controller
     public function search(Request $request): JsonResponse
     {
         $query = $request->input('query');
-        
+
         $users = User::select(['id', 'name'])
             ->where('is_active', true)
             ->where('name', 'LIKE', "%{$query}%")
@@ -69,7 +69,7 @@ class UserController extends Controller
     public function store(UserRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        
+
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -92,7 +92,7 @@ class UserController extends Controller
     public function show($id): JsonResponse
     {
         $user = User::findOrFail($id);
-        
+
         return response()->json([
             'user' => $user
         ]);
@@ -109,7 +109,7 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $validated = $request->validated();
-        
+
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         }
