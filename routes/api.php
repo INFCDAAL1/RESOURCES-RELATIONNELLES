@@ -73,4 +73,10 @@ Route::middleware(['AuthorizedAdmin'])->group(function () {
     Route::get('/users/{user}', [UserController::class, 'show']);
     Route::put('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
+
+    // Admin operations for statistics
+    Route::get('/stats/general', [StatsController::class, 'general']);
+    Route::get('/stats/resources', [StatsController::class, 'resources']);
+    Route::get('/stats/engagement', [StatsController::class, 'engagement']);
+    Route::get('/stats/activity', [StatsController::class, 'activity']);
 });
