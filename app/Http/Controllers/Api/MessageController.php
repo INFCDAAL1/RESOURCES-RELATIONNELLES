@@ -133,7 +133,7 @@ class MessageController extends Controller
             });
 
         // Mark received messages as read
-        Message::where('sender_id', $receiverId)
+        Message::where('sender_id', $interlocutorId)
             ->where('receiver_id', $userId)
             ->where('read', false)
             ->update(['read' => true]);
