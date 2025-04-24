@@ -36,6 +36,10 @@ Route::middleware('Authorized')->group(function () {
     Route::post('favorite/{resource}', [ResourceController::class, 'favorite']);
     Route::get('resources/{resource}', [ResourceController::class, 'show']);
     Route::get('resources/{resource}/download', [ResourceController::class, 'download'])->name('resources.download');
+
+    Route::put('resources/{resource}', [ResourceController::class, 'update']);
+    Route::patch('resources/{resource}', [ResourceController::class, 'update']);
+    Route::delete('resources/{resource}', [ResourceController::class, 'destroy']);
     
     
     // User interactions
@@ -56,11 +60,6 @@ Route::middleware('Authorized')->group(function () {
 
 // Routes nécessitant des privilèges admin
 Route::middleware(['AuthorizedAdmin'])->group(function () {
-    // Admin operations for resources
-    Route::put('resources/{resource}', [ResourceController::class, 'update']);
-    Route::patch('resources/{resource}', [ResourceController::class, 'update']);
-    Route::delete('resources/{resource}', [ResourceController::class, 'destroy']);
-    
     // Admin operations for reference data
     Route::apiResource('types', TypeController::class)->except(['index', 'show']);
     Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
