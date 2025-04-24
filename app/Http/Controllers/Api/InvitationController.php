@@ -8,6 +8,8 @@ use App\Http\Requests\InvitationRequest;
 use App\Http\Resources\InvitationResource;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Resource;
+
 
 class InvitationController extends Controller
 {
@@ -35,7 +37,31 @@ class InvitationController extends Controller
      */
     public function store(InvitationRequest $request)
     {
-        $validated = $request->validated();
+        $validated = $request->validate(
+            [
+                'receiver_id' => 'required|exists:users,id',
+                'resource_id' => 'required|exists:resources,id',
+            ]
+        );
+
+        // Check if the sender is not the same as the receiver
+        if ($validated['receiver_id'] === Auth::id()) {
+            return response()->json(['message' => 'You cannot send an invitation to yourself'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Check if the invitation already exists
+        $existingInvitation = Invitation::where('sender_id', Auth::id())
+            ->where('receiver_id', $validated['receiver_id'])
+            ->where('resource_id', $validated['resource_id'])
+            ->first();
+        if ($existingInvitation) {
+            return response()->json(['message' => 'Invitation already exists'], Response::HTTP_BAD_REQUEST);
+        }
+        // Check if the resource belongs to the sender
+        $resource = Resource::find($validated['resource_id']);
+        if ($resource->user_id !== Auth::id()) {
+            return response()->json(['message' => 'You do not own this resource'], Response::HTTP_FORBIDDEN);
+        }
         
         // Set the sender as the current user
         $validated['sender_id'] = Auth::id();
@@ -90,8 +116,9 @@ class InvitationController extends Controller
      */
     public function destroy(Invitation $invitation)
     {
+        $userId = Auth::id();
         // Authorization: only sender can delete the invitation
-        if ($invitation->sender_id !== Auth::id() && !Auth::user()->isAdmin()) {
+        if ($invitation->receiver_id !== $userId && $invitation->sender_id !== $userId) {
             return response()->json(['message' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
         

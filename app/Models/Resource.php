@@ -121,6 +121,11 @@ class Resource extends Model
         return $this->hasMany(ResourceInteraction::class);
     }
 
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
+
     /**
      * Handle file upload for the resource.
      */

@@ -9,6 +9,8 @@ use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use App\Models\Invitation;
 
 class ResourceController extends Controller
 {
@@ -165,7 +167,7 @@ class ResourceController extends Controller
         if ($user && $user->isAdmin()) { //OR MODO
             $resources = Resource::with(['category', 'visibility', 'user', 'type'])
                 ->latest()
-                ->paginate(10);
+                ->paginate(100);
         } else {
             $resources = Resource::with(['category', 'visibility', 'user', 'type'])
                 ->where('user_id', $user->id ?? null)
@@ -173,10 +175,21 @@ class ResourceController extends Controller
                     $query
                         ->where('published', true)
                         ->where('validated', true)
-                        ->where('visibility_id', 1); // Assuming 1 is the ID for public visibility
+                        ->where(function ($query) use ($user) {
+                            $query
+                                ->where('visibility_id', 1)
+                                ->orWhere(function ($query) use ($user) {
+                                    $query
+                                        ->where('visibility_id', 3)
+                                        ->whereHas('invitations', function ($query) use ($user) {
+                                            $query->where('receiver_id', $user->id ?? null)
+                                                ->where('status', 'accepted');
+                                        });
+                                });
+                        });
                 })
                 ->latest()
-                ->paginate(10);
+                ->paginate(100);
         }
 
         return ResourceResource::collection($resources);
@@ -189,7 +202,11 @@ class ResourceController extends Controller
         else if ($resource->user_id === $user->id) return true;
         else if ($resource->published && $resource->validated) {
             if($resource->visibility->name === 'public') return true;
-            //INVITATIONS
+            else if ($resource->visibility->name === 'private') return false;
+            else if ($resource->visibility->name === 'restricted') {
+                // Check if the user has accepted the invitation
+                return $this->hasAcceptedInvitation($user, $resource);
+            }
         }
 
         return false;
@@ -202,5 +219,13 @@ class ResourceController extends Controller
         else if ($resource->user_id === $user->id) return true;
 
         return false;
+    }
+
+    public function hasAcceptedInvitation(User $user, Resource $resource)
+    {
+        return $user->invitations()
+            ->where('resource_id', $resource->id)
+            ->where('status', 'accepted')
+            ->exists();
     }
 }
