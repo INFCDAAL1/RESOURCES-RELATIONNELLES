@@ -21,6 +21,10 @@ class Cors
         //     ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, PREFLIGHT')
         //     ->header('Access-Control-Allow-Headers', '*');
 
+        if ($request->is('api/resources/*/download')) {
+            return $next($request); // skip le middleware
+        }
+
         if ($request->getMethod() === "OPTIONS") {
             return response()->noContent(204)
                 ->header('Access-Control-Allow-Origin', '*')
