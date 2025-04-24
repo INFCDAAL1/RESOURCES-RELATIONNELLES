@@ -40,6 +40,8 @@ Route::middleware('Authorized')->group(function () {
     Route::put('resources/{resource}', [ResourceController::class, 'update']);
     Route::patch('resources/{resource}', [ResourceController::class, 'update']);
     Route::delete('resources/{resource}', [ResourceController::class, 'destroy']);
+
+    Route::post('resources/{resource}/validate', [ResourceController::class, 'validateResource']);
     
     
     // User interactions
@@ -56,10 +58,6 @@ Route::middleware('Authorized')->group(function () {
 
     // CREATE operations for resources - authenticated users can create
     Route::post('resources', [ResourceController::class, 'store']);
-});
-
-Route::middleware(['AuthorizedModo'])->group(function () {
-    Route::post('resources/{resource}/validate', [ResourceController::class, 'validateResource']);
 });
 
 // Routes nécessitant des privilèges admin
