@@ -58,6 +58,10 @@ Route::middleware('Authorized')->group(function () {
     Route::post('resources', [ResourceController::class, 'store']);
 });
 
+Route::middleware(['AuthorizedModo'])->group(function () {
+    Route::post('resources/{resource}/validate', [ResourceController::class, 'validateResource']);
+});
+
 // Routes nécessitant des privilèges admin
 Route::middleware(['AuthorizedAdmin'])->group(function () {
     // Admin operations for reference data

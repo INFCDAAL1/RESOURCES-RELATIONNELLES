@@ -59,13 +59,6 @@ class ResourceController extends Controller
         if(!$this->canRead($resource)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
-        // Check if user can view this resource
-        if (!Auth::user()->isAdmin() && 
-            $resource->user_id !== Auth::id() && 
-            (!$resource->published || !$resource->validated)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
         
         return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
     }
@@ -157,7 +150,8 @@ class ResourceController extends Controller
     public function getAuthorizedResources(Request $request)
     {
         $user = Auth::user();
-        if ($user && $user->isAdmin()) { //OR MODO
+
+        if ($user && ($user->isAdmin() || $user->isModo())) {
             $resources = Resource::with(['category', 'visibility', 'user', 'type'])
                 ->latest()
                 ->get();
@@ -188,10 +182,23 @@ class ResourceController extends Controller
         return ResourceResource::collection($resources);
     }
 
+    public function validateResource(Resource $resource)
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isModo())) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $resource->validated = true;
+        $resource->save();
+
+        return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
+    }
+
     public function canRead(Resource $resource)
     {
         $user = Auth::user();
-        if ($user->isAdmin()) return true; //OU MODO
+        if ($user->isAdmin() || $user->isModo()) return true;
         else if ($resource->user_id === $user->id) return true;
         else if ($resource->published && $resource->validated) {
             if($resource->visibility->name === 'public') return true;
@@ -208,7 +215,7 @@ class ResourceController extends Controller
     public function canEdit(Resource $resource)
     {
         $user = Auth::user();
-        if ($user->isAdmin()) return true; //OU MODO
+        if ($user->isAdmin()) return true;
         else if ($resource->user_id === $user->id) return true;
 
         return false;
