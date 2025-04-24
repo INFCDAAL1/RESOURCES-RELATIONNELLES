@@ -64,11 +64,9 @@ class MessageController extends Controller
     {
         $validated = $request->validated();
         
-        // Set sender to current authenticated user
         $validated['sender_id'] = Auth::id();
         $validated['read'] = false;
         
-        // Assurez-vous que receiver_id est bien présent dans les données validées
         if (!isset($validated['receiver_id'])) {
             return response()->json([
                 'message' => 'Receiver ID is required',
@@ -78,10 +76,9 @@ class MessageController extends Controller
         
         $message = Message::create($validated);
         
-        // Charger explicitement à la fois l'expéditeur et le destinataire
         return new MessageResource($message->load(['sender', 'receiver']));
     }
-    
+
     /**
      * Display the specified message.
      *
