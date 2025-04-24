@@ -17,13 +17,7 @@ class ResourceController extends Controller
      */
     public function index(Request $request)
     {
-        $resources = Resource::with(['category', 'visibility', 'user', 'type'])
-            ->where('published', true)
-            ->where('validated', true)
-            ->latest()
-            ->paginate(10);
-
-        return ResourceResource::collection($resources);
+        return $this->getAuthorizedResources($request);
     }
 
     /**
@@ -57,6 +51,10 @@ class ResourceController extends Controller
      */
     public function show(Resource $resource)
     {
+        if(!$this->canRead($resource)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         // Check if user can view this resource
         if (!Auth::user()->isAdmin() && 
             $resource->user_id !== Auth::id() && 
@@ -72,6 +70,10 @@ class ResourceController extends Controller
      */
     public function update(ResourceRequest $request, Resource $resource)
     {
+        if(!$this->canEdit($resource)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $validated = $request->validated();
         
         // Remove file from validated data to handle it separately
@@ -96,6 +98,10 @@ class ResourceController extends Controller
      */
     public function destroy(Resource $resource)
     {
+        if(!$this->canEdit($resource)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+    
         // Delete associated file
         $resource->deleteFile();
         
@@ -111,9 +117,7 @@ class ResourceController extends Controller
     public function download(Resource $resource)
     {
         // Check if user can download this resource
-        if (!Auth::user()->isAdmin() && 
-            $resource->user_id !== Auth::id() && 
-            (!$resource->published || !$resource->validated)) {
+        if(!$this->canRead($resource)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         
@@ -132,6 +136,10 @@ class ResourceController extends Controller
      */
     public function favorite(Request $request, Resource $resource)
     {
+        if(!$this->canRead($resource)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $validated = $request->validate([
             'setTo' => 'required|boolean',
         ]);
@@ -149,5 +157,50 @@ class ResourceController extends Controller
         return response()->json([
             'message' => $validated['setTo'] ? 'Resource added to favorites' : 'Resource removed from favorites'
         ]);
+    }
+
+    public function getAuthorizedResources(Request $request)
+    {
+        $user = Auth::user();
+        if ($user && $user->isAdmin()) { //OR MODO
+            $resources = Resource::with(['category', 'visibility', 'user', 'type'])
+                ->latest()
+                ->paginate(10);
+        } else {
+            $resources = Resource::with(['category', 'visibility', 'user', 'type'])
+                ->where('user_id', $user->id ?? null)
+                ->orWhere(function ($query) use ($user) {
+                    $query
+                        ->where('published', true)
+                        ->where('validated', true)
+                        ->where('visibility_id', 1); // Assuming 1 is the ID for public visibility
+                })
+                ->latest()
+                ->paginate(10);
+        }
+
+        return ResourceResource::collection($resources);
+    }
+
+    public function canRead(Resource $resource)
+    {
+        $user = Auth::user();
+        if ($user->isAdmin()) return true; //OU MODO
+        else if ($resource->user_id === $user->id) return true;
+        else if ($resource->published && $resource->validated) {
+            if($resource->visibility->name === 'public') return true;
+            //INVITATIONS
+        }
+
+        return false;
+    }
+
+    public function canEdit(Resource $resource)
+    {
+        $user = Auth::user();
+        if ($user->isAdmin()) return true; //OU MODO
+        else if ($resource->user_id === $user->id) return true;
+
+        return false;
     }
 }

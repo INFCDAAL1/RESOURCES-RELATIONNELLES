@@ -13,7 +13,7 @@ use App\Http\Controllers\Api\ResourceInteractionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\UserController;
 
-Route::get('public-resources', [PublicResourceController::class, 'index']);
+// Route::get('public-resources', [PublicResourceController::class, 'index']);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
@@ -23,19 +23,20 @@ Route::middleware('Authorized')->group(function () {
     Route::post('refresh', [AuthController::class, 'refresh']);
 });
 
+Route::get('resources', [ResourceController::class, 'index']);
+// Other read operations for reference data
+Route::apiResource('types', TypeController::class)->only(['index', 'show']);
+Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+Route::apiResource('visibilities', VisibilityController::class)->only(['index', 'show']);
+Route::apiResource('origins', OriginController::class)->only(['index', 'show']);
+
 // Routes nécessitant uniquement l'authentification
 Route::middleware('Authorized')->group(function () {
     // READ operations - get resources
-    Route::get('resources', [ResourceController::class, 'index']);
     Route::post('favorite/{resource}', [ResourceController::class, 'favorite']);
     Route::get('resources/{resource}', [ResourceController::class, 'show']);
     Route::get('resources/{resource}/download', [ResourceController::class, 'download'])->name('resources.download');
     
-    // Other read operations for reference data
-    Route::apiResource('types', TypeController::class)->only(['index', 'show']);
-    Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
-    Route::apiResource('visibilities', VisibilityController::class)->only(['index', 'show']);
-    Route::apiResource('origins', OriginController::class)->only(['index', 'show']);
     
     // User interactions
     Route::apiResource('comments', CommentController::class);
