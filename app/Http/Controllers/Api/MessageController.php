@@ -23,9 +23,12 @@ class MessageController extends Controller
     {
         $userId = Auth::id();
         
-        // Get users with whom the current user has conversations
-        $conversations = DB::table('messages')
-            ->select('users.id', 'users.name', DB::raw('MAX(messages.created_at) as last_message_date'))
+        // First, get the list of users with whom the current user has conversations
+        $userList = DB::table('messages')
+            ->select(
+                'users.id', 
+                'users.name'
+            )
             ->join('users', function($join) use ($userId) {
                 $join->on('users.id', '=', 'messages.sender_id')
                     ->where('messages.receiver_id', '=', $userId)
@@ -40,8 +43,47 @@ class MessageController extends Controller
             })
             ->where('users.id', '!=', $userId)
             ->groupBy('users.id', 'users.name')
-            ->orderBy('last_message_date', 'desc')
             ->get();
+        
+        // Now enrich each conversation with the last message and unread count
+        $conversations = [];
+        foreach ($userList as $user) {
+            // Get the last message
+            $lastMessage = Message::where(function($query) use ($userId, $user) {
+                    $query->where('sender_id', $userId)
+                        ->where('receiver_id', $user->id);
+                })
+                ->orWhere(function($query) use ($userId, $user) {
+                    $query->where('sender_id', $user->id)
+                        ->where('receiver_id', $userId);
+                })
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            // Count unread messages
+            $unreadCount = Message::where('sender_id', $user->id)
+                ->where('receiver_id', $userId)
+                ->where('read', false)
+                ->count();
+                
+            // Add to result array with message as a nested object
+            $conversations[] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'unread_count' => $unreadCount,
+                'message' => [
+                    'id' => $lastMessage->id,
+                    'content' => $lastMessage->content,
+                    'created_at' => $lastMessage->created_at,
+                    'is_sender' => ($lastMessage->sender_id == $userId),
+                    'read' => $lastMessage->read
+                ]
+            ];
+        }
+        
+        usort($conversations, function($a, $b) {
+            return strtotime($b['message']['created_at']) - strtotime($a['message']['created_at']);
+        });
             
         return response()->json($conversations);
     }
