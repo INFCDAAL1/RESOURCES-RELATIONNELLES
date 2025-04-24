@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Resource;
 use App\Models\User;
 use App\Models\Category;
-use App\Models\Type;
 use App\Models\Message;
 use App\Models\Comment;
 use App\Models\Invitation;
@@ -28,7 +27,6 @@ class StatsController extends Controller
             'users_count' => User::where('is_active', true)->count(),
             'resources_count' => Resource::where('published', true)->count(),
             'categories_count' => Category::count(),
-            'types_count' => Type::count(),
             'messages_count' => Message::count(),
             'comments_count' => Comment::count(),
         ]);
@@ -49,12 +47,6 @@ class StatsController extends Controller
                 return [
                     'name' => $category->name,
                     'count' => $category->resources_count
-                ];
-            }),
-            'by_type' => Type::withCount('resources')->get()->map(function ($type) {
-                return [
-                    'name' => $type->name,
-                    'count' => $type->resources_count
                 ];
             }),
             'recent_activity' => Resource::select(['id', 'name', 'created_at'])
