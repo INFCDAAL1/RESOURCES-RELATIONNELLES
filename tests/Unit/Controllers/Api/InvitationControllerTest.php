@@ -24,28 +24,28 @@ class InvitationControllerTest extends TestCase
     protected $resource;
 
     public function setUp(): void
-    {
-        parent::setUp();
-        $this->controller = new InvitationController();
-        $this->sender = User::factory()->create(['role' => 'user']);
-        $this->receiver = User::factory()->create(['role' => 'user']);
-        
-        // Créer les dépendances nécessaires pour les ressources
-        $type = \App\Models\Type::factory()->create();
-        $category = \App\Models\Category::factory()->create();
-        $visibility = \App\Models\Visibility::factory()->create();
-        $origin = \App\Models\Origin::factory()->create();
-        
-        // Créer une ressource
-        $this->resource = Resource::factory()->create([
-            'type_id' => $type->id,
-            'category_id' => $category->id,
-            'visibility_id' => $visibility->id,
-            'user_id' => $this->sender->id,
-            'origin_id' => $origin->id,
-            'link' => 'https://example.com/resource'
-        ]);
-    }
+{
+    parent::setUp();
+    $this->controller = new InvitationController();
+    $this->sender = User::factory()->create(['role' => 'user']);
+    $this->receiver = User::factory()->create(['role' => 'user']);
+    
+    // Créer les dépendances nécessaires pour les ressources avec des noms uniques
+    $type = \App\Models\Type::factory()->create(['name' => 'Type-' . uniqid()]);
+    $category = \App\Models\Category::factory()->create(['name' => 'Category-' . uniqid()]);
+    $visibility = \App\Models\Visibility::factory()->create(['name' => 'Visibility-' . uniqid()]);
+    $origin = \App\Models\Origin::factory()->create(['libelle' => 'Origin-' . uniqid()]);
+    
+    // Créer une ressource
+    $this->resource = Resource::factory()->create([
+        'type_id' => $type->id,
+        'category_id' => $category->id,
+        'visibility_id' => $visibility->id,
+        'user_id' => $this->sender->id,
+        'origin_id' => $origin->id,
+        'link' => 'https://example.com/resource'
+    ]);
+}
 
     public function tearDown(): void
     {
@@ -92,6 +92,11 @@ class InvitationControllerTest extends TestCase
         // Mock Auth
         Auth::shouldReceive('id')
             ->andReturn($this->sender->id);
+            
+        // Ajout du mock pour Auth::user()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->store($request);
@@ -209,41 +214,41 @@ class InvitationControllerTest extends TestCase
     }
 
     public function test_update_returns_forbidden_for_sender()
-{
-    // Créer une invitation
-    $invitation = Invitation::create([
-        'status' => 'pending',
-        'sender_id' => $this->sender->id,
-        'receiver_id' => $this->receiver->id,
-        'resource_id' => $this->resource->id
-    ]);
-    
-    // Données de mise à jour
-    $updateData = [
-        'status' => 'accepted'
-    ];
-    
-    // Mock de la requête
-    $request = Mockery::mock(InvitationRequest::class);
-    $request->shouldReceive('validated')
-        ->andReturn($updateData);
-    
-    // Mock Auth (le sender essaie de mettre à jour)
-    Auth::shouldReceive('id')
-        ->andReturn($this->sender->id);
+    {
+        // Créer une invitation
+        $invitation = Invitation::create([
+            'status' => 'pending',
+            'sender_id' => $this->sender->id,
+            'receiver_id' => $this->receiver->id,
+            'resource_id' => $this->resource->id
+        ]);
+        
+        // Données de mise à jour
+        $updateData = [
+            'status' => 'accepted'
+        ];
+        
+        // Mock de la requête
+        $request = Mockery::mock(InvitationRequest::class);
+        $request->shouldReceive('validated')
+            ->andReturn($updateData);
+        
+        // Mock Auth (le sender essaie de mettre à jour)
+        Auth::shouldReceive('id')
+            ->andReturn($this->sender->id);
 
-    // Mock aussi Auth::user()->isAdmin()
-    $userMock = Mockery::mock(User::class);
-    $userMock->shouldReceive('isAdmin')->andReturn(false);
-    Auth::shouldReceive('user')->andReturn($userMock);
-    
-    // Exécuter la méthode
-    $response = $this->controller->update($request, $invitation);
-    
-    // Vérifier les résultats
-    $this->assertEquals(Response::HTTP_FORBIDDEN, $response->status());
-    $this->assertEquals('Unauthorized', json_decode($response->getContent())->message);
-}
+        // Mock aussi Auth::user()->isAdmin()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
+        
+        // Exécuter la méthode
+        $response = $this->controller->update($request, $invitation);
+        
+        // Vérifier les résultats
+        $this->assertEquals(Response::HTTP_FORBIDDEN, $response->status());
+        $this->assertEquals('Unauthorized', json_decode($response->getContent())->message);
+    }
 
     public function test_destroy_deletes_invitation_for_sender()
     {
@@ -258,8 +263,11 @@ class InvitationControllerTest extends TestCase
         // Mock Auth
         Auth::shouldReceive('id')
             ->andReturn($this->sender->id);
-        Auth::shouldReceive('user->isAdmin')
-            ->andReturn(false);
+            
+        // Correction du mock pour Auth::user()->isAdmin()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->destroy($invitation);
@@ -282,8 +290,11 @@ class InvitationControllerTest extends TestCase
         // Mock Auth
         Auth::shouldReceive('id')
             ->andReturn($this->receiver->id);
-        Auth::shouldReceive('user->isAdmin')
-            ->andReturn(false);
+            
+        // Correction du mock pour Auth::user()->isAdmin()
+        $userMock = Mockery::mock(User::class);
+        $userMock->shouldReceive('isAdmin')->andReturn(false);
+        Auth::shouldReceive('user')->andReturn($userMock);
         
         // Exécuter la méthode
         $response = $this->controller->destroy($invitation);

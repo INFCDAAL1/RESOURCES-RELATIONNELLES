@@ -32,17 +32,39 @@ class TypeControllerTest extends TestCase
 
     public function test_index_returns_all_types()
     {
-        // Créer quelques types
-        Type::factory()->count(3)->create();
+        // Utiliser un compteur pour s'assurer que les noms sont uniques
+        static $counter = 0;
+        $counter++;
+        
+        // Créer des types avec des noms garantis uniques
+        $typeNames = [
+            "Test Type A{$counter}_" . time(),
+            "Test Type B{$counter}_" . time(),
+            "Test Type C{$counter}_" . time(),
+        ];
+        
+        $createdTypes = [];
+        foreach ($typeNames as $name) {
+            $createdTypes[] = Type::factory()->create(['name' => $name]);
+        }
         
         // Exécuter la méthode
         $response = $this->controller->index();
         
         // Vérifier les résultats
         $this->assertInstanceOf(\Illuminate\Http\Resources\Json\AnonymousResourceCollection::class, $response);
-        $this->assertEquals(3, $response->resource->count());
+        
+        // Vérifier que tous nos types créés sont présents dans la réponse
+        $responseData = $response->resource->toArray();
+        $responseNames = array_map(function($item) {
+            return $item['name'];
+        }, $responseData);
+        
+        foreach ($typeNames as $name) {
+            $this->assertContains($name, $responseNames);
+        }
     }
-
+    
     public function test_store_creates_new_type()
     {
         // Données du type

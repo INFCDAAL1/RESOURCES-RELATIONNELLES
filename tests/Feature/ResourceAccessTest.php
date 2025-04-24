@@ -35,9 +35,7 @@ class ResourceAccessTest extends TestCase
         ];
         
         // Mocker la requête à l'API avec un tableau de données simples
-        $response = new JsonResponse([
-            'data' => [$resourceData]
-        ], 200);
+        $response = new JsonResponse([ 'data' => [$resourceData] ], 200);
         
         // Réussir le test si la ressource publique est visible
         $this->assertTrue(
@@ -71,9 +69,7 @@ class ResourceAccessTest extends TestCase
         ];
         
         // Mocker la requête à l'API avec un tableau de données simples
-        $response = new JsonResponse([
-            'data' => [$resourceData]
-        ], 200);
+        $response = new JsonResponse([ 'data' => [$resourceData] ], 200);
         
         // Réussir le test si la ressource privée de l'utilisateur est visible
         $this->assertTrue(
@@ -114,9 +110,7 @@ class ResourceAccessTest extends TestCase
         }
         
         // Mocker la requête à l'API
-        $response = new JsonResponse([
-            'data' => $filteredResources
-        ], 200);
+        $response = new JsonResponse([ 'data' => $filteredResources ], 200);
         
         // Réussir le test si la ressource privée de l'autre utilisateur n'est pas visible
         $this->assertTrue(
@@ -154,9 +148,7 @@ class ResourceAccessTest extends TestCase
         ];
         
         // Mocker la requête à l'API
-        $response = new JsonResponse([
-            'data' => [$publicResourceData, $privateResourceData]
-        ], 200);
+        $response = new JsonResponse([ 'data' => [$publicResourceData, $privateResourceData] ], 200);
         
         // Réussir le test si toutes les ressources sont visibles
         $this->assertTrue(
@@ -316,13 +308,7 @@ class ResourceAccessTest extends TestCase
         $this->assertTrue(
             $response->getStatusCode() === 200 && 
             $response->getData()->name === 'Other User Private Resource',
-            "Les administrateurs doivent pouvoir voir le contenu de toutes les ressources"
+            "Les administrateurs doivent pouvoir voir le contenu des ressources privées des autres"
         );
-    }
-    
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
     }
 }
