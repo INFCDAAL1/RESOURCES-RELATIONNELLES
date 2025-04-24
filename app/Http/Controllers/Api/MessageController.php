@@ -184,6 +184,7 @@ class MessageController extends Controller
                         'id' => $lastMessage->sender->id,
                         'name' => $lastMessage->sender->name
                     ],
+                    'receiver_id' => $lastMessage->receiver_id,
                     'created_at' => $lastMessage->created_at,
                     'updated_at' => $lastMessage->updated_at
                 ];
@@ -194,6 +195,7 @@ class MessageController extends Controller
                     'id' => $user->id,
                     'name' => $user->name
                 ],
+                'receiver_id' => $user->id, // Adding the receiver_id explicitly
                 'last_message' => $formattedMessage,
                 'unread_count' => $unreadCount,
                 'last_activity' => $lastMessage ? $lastMessage->created_at : null
