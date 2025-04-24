@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Invitation;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
+
 
 class ResourceController extends Controller
 {
@@ -56,13 +59,6 @@ class ResourceController extends Controller
         if(!$this->canRead($resource)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
-        // Check if user can view this resource
-        if (!Auth::user()->isAdmin() && 
-            $resource->user_id !== Auth::id() && 
-            (!$resource->published || !$resource->validated)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
         
         return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
     }
@@ -76,21 +72,11 @@ class ResourceController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+
         $validated = $request->validated();
-        
-        // Remove file from validated data to handle it separately
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            unset($validated['file']);
-        }
         
         // Update resource
         $resource->update($validated);
-        
-        // Handle file upload if present
-        if (isset($file)) {
-            $resource->uploadFile($file);
-        }
         
         return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
     }
@@ -164,10 +150,11 @@ class ResourceController extends Controller
     public function getAuthorizedResources(Request $request)
     {
         $user = Auth::user();
-        if ($user && $user->isAdmin()) { //OR MODO
+
+        if ($user && ($user->isAdmin() || $user->isModo())) {
             $resources = Resource::with(['category', 'visibility', 'user', 'type'])
                 ->latest()
-                ->paginate(100);
+                ->get();
         } else {
             $resources = Resource::with(['category', 'visibility', 'user', 'type'])
                 ->where('user_id', $user->id ?? null)
@@ -189,16 +176,29 @@ class ResourceController extends Controller
                         });
                 })
                 ->latest()
-                ->paginate(100);
+                ->get();
         }
 
         return ResourceResource::collection($resources);
     }
 
+    public function validateResource(Resource $resource)
+    {
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isModo())) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $resource->validated = true;
+        $resource->save();
+
+        return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
+    }
+
     public function canRead(Resource $resource)
     {
         $user = Auth::user();
-        if ($user->isAdmin()) return true; //OU MODO
+        if ($user->isAdmin() || $user->isModo()) return true;
         else if ($resource->user_id === $user->id) return true;
         else if ($resource->published && $resource->validated) {
             if($resource->visibility->name === 'public') return true;
@@ -215,7 +215,7 @@ class ResourceController extends Controller
     public function canEdit(Resource $resource)
     {
         $user = Auth::user();
-        if ($user->isAdmin()) return true; //OU MODO
+        if ($user->isAdmin()) return true;
         else if ($resource->user_id === $user->id) return true;
 
         return false;

@@ -36,15 +36,24 @@ Route::middleware('Authorized')->group(function () {
     Route::post('favorite/{resource}', [ResourceController::class, 'favorite']);
     Route::get('resources/{resource}', [ResourceController::class, 'show']);
     Route::get('resources/{resource}/download', [ResourceController::class, 'download'])->name('resources.download');
+
+    Route::put('resources/{resource}', [ResourceController::class, 'update']);
+    Route::patch('resources/{resource}', [ResourceController::class, 'update']);
+    Route::delete('resources/{resource}', [ResourceController::class, 'destroy']);
+
+    Route::post('resources/{resource}/validate', [ResourceController::class, 'validateResource']);
     
+    Route::get('/messages', [MessageController::class, 'index']);
+    Route::get('/messages/{receiverId}', [MessageController::class, 'getConversation']);
+    Route::post('/messages', [MessageController::class, 'store']);
+    Route::put('/messages/{message}', [MessageController::class, 'update']);
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy']);
+
     
     // User interactions
     Route::apiResource('comments', CommentController::class);
     Route::apiResource('invitations', InvitationController::class);
-    Route::apiResource('messages', MessageController::class);
     Route::apiResource('resource-interactions', ResourceInteractionController::class);
-    Route::get('messages/conversations', [MessageController::class, 'conversations']);
-    Route::post('messages/mark-all-read', [MessageController::class, 'markAllAsRead']);
 
     // User management - get a list of users
     Route::get('/users/list', [UserController::class, 'index']);
@@ -56,14 +65,21 @@ Route::middleware('Authorized')->group(function () {
 
 // Routes nécessitant des privilèges admin
 Route::middleware(['AuthorizedAdmin'])->group(function () {
-    // Admin operations for resources
-    Route::put('resources/{resource}', [ResourceController::class, 'update']);
-    Route::patch('resources/{resource}', [ResourceController::class, 'update']);
-    Route::delete('resources/{resource}', [ResourceController::class, 'destroy']);
-    
     // Admin operations for reference data
     Route::apiResource('types', TypeController::class)->except(['index', 'show']);
     Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
     Route::apiResource('visibilities', VisibilityController::class)->except(['index', 'show']);
     Route::apiResource('origins', OriginController::class)->except(['index', 'show']);
+
+    // Admin operations for users
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{user}', [UserController::class, 'show']);
+    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
+
+    // Admin operations for statistics
+    Route::get('/stats/general', [StatsController::class, 'general']);
+    Route::get('/stats/resources', [StatsController::class, 'resources']);
+    Route::get('/stats/engagement', [StatsController::class, 'engagement']);
+    Route::get('/stats/activity', [StatsController::class, 'activity']);
 });
