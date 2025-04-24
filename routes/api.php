@@ -45,7 +45,7 @@ Route::middleware('Authorized')->group(function () {
     Route::post('resources/{resource}/validate', [ResourceController::class, 'validateResource']);
 
     Route::get('/messages', [MessageController::class, 'index']);
-    Route::get('/messages/{receiverId}', [MessageController::class, 'getConversation']);
+    Route::get('/messages/{interlocutorId}', [MessageController::class, 'getConversation']);
     Route::post('/messages', [MessageController::class, 'store']);
     Route::put('/messages/{message}', [MessageController::class, 'update']);
     Route::delete('/messages/{message}', [MessageController::class, 'destroy']);
