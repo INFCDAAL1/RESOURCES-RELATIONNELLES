@@ -139,17 +139,16 @@ class ResourceCreationTest extends TestCase
         'visibility_id' => $this->visibility->id,
     ]);
     
-    $response->assertStatus(403); // Changé pour accepter le 403 temporairement
+    $response->assertStatus(200); // Succès attendu
     
+    // Vérifier que la ressource a été modifiée
     $this->assertDatabaseHas('resources', [
         'id' => $resource->id,
-        'name' => 'Ressource à éditer',
-        'description' => 'Description initiale',
+        'name' => 'Ressource modifiée',
+        'description' => 'Nouvelle description',
     ]);
-    
 }
 
-    
     /**
      * Test qu'un citoyen ne peut pas éditer la ressource d'un autre utilisateur
      */
