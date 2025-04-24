@@ -66,4 +66,10 @@ Route::middleware(['AuthorizedAdmin'])->group(function () {
     Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
     Route::apiResource('visibilities', VisibilityController::class)->except(['index', 'show']);
     Route::apiResource('origins', OriginController::class)->except(['index', 'show']);
+
+    // Admin operations for users
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{user}', [UserController::class, 'show']);
+    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
 });
