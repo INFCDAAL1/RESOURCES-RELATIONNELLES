@@ -10,6 +10,7 @@ use App\Http\Resources\MessageResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MessageController extends Controller
 {
@@ -20,35 +21,69 @@ class MessageController extends Controller
      */
     public function index(Request $request)
     {
-        if ($request->has('user_id')) {
-            $otherUserId = $request->input('user_id');
+        $userId = Auth::id();
+        
+        // Get users with whom the current user has conversations
+        $conversations = DB::table('messages')
+            ->select('users.id', 'users.name', 'users.avatar', DB::raw('MAX(messages.created_at) as last_message_date'))
+            ->join('users', function($join) use ($userId) {
+                $join->on('users.id', '=', 'messages.sender_id')
+                    ->where('messages.receiver_id', '=', $userId)
+                    ->orWhere(function($query) use ($userId) {
+                        $query->on('users.id', '=', 'messages.receiver_id')
+                            ->where('messages.sender_id', '=', $userId);
+                    });
+            })
+            ->where(function($query) use ($userId) {
+                $query->where('messages.sender_id', $userId)
+                    ->orWhere('messages.receiver_id', $userId);
+            })
+            ->where('users.id', '!=', $userId)
+            ->groupBy('users.id', 'users.name', 'users.avatar')
+            ->orderBy('last_message_date', 'desc')
+            ->get();
             
-            $messages = Message::where(function($q) use ($otherUserId) {
-                    $q->where([
-                        'sender_id' => Auth::id(),
-                        'receiver_id' => $otherUserId
-                    ])->orWhere([
-                        'sender_id' => $otherUserId,
-                        'receiver_id' => Auth::id()
-                    ]);
-                })
-                ->with(['sender:id,name,email', 'receiver:id,name,email'])
-                ->latest()
-                ->paginate(15);
-                
-            Message::where([
-                'sender_id' => $otherUserId,
-                'receiver_id' => Auth::id(),
-                'read' => false
-            ])->update(['read' => true]);
-        } else {
-            $messages = Message::where('sender_id', Auth::id())
-                ->orWhere('receiver_id', Auth::id())
-                ->with(['sender:id,name,email', 'receiver:id,name,email'])
-                ->latest()
-                ->paginate(15);
+        return response()->json($conversations);
+    }
+    
+    /**
+     * Get messages between current user and specified user.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $receiverId
+     * @return \Illuminate\Http\Response
+     */
+    public function getConversation(Request $request, $receiverId)
+    {
+        $userId = Auth::id();
+        
+        // Check if the receiver exists
+        $receiver = User::find($receiverId);
+        if (!$receiver) {
+            return response()->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
         
+        // Get the last 15 messages between the two users
+        $messages = Message::where(function($query) use ($userId, $receiverId) {
+                $query->where('sender_id', $userId)
+                      ->where('receiver_id', $receiverId);
+            })
+            ->orWhere(function($query) use ($userId, $receiverId) {
+                $query->where('sender_id', $receiverId)
+                      ->where('receiver_id', $userId);
+            })
+            ->with(['sender', 'receiver'])
+            ->orderBy('created_at', 'desc')
+            ->take(15)
+            ->get()
+            ->reverse();
+            
+        // Mark received messages as read
+        Message::where('sender_id', $receiverId)
+            ->where('receiver_id', $userId)
+            ->where('read', false)
+            ->update(['read' => true]);
+            
         return MessageResource::collection($messages);
     }
 
@@ -78,27 +113,6 @@ class MessageController extends Controller
     }
 
     /**
-     * Display the specified message.
-     *
-     * @param  \App\Models\Message  $message
-     * @return \App\Http\Resources\MessageResource
-     */
-    public function show(Message $message)
-    {
-        // Authorization: only sender or receiver can see the message
-        if ($message->sender_id !== Auth::id() && $message->receiver_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
-        }
-        
-        // Mark as read if viewing as receiver
-        if ($message->receiver_id === Auth::id() && !$message->read) {
-            $message->update(['read' => true]);
-        }
-        
-        return new MessageResource($message->load(['sender', 'receiver']));
-    }
-
-    /**
      * Update the message read status.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -107,8 +121,12 @@ class MessageController extends Controller
      */
     public function update(Request $request, Message $message)
     {
-        // Only receiver can mark as read/unread
-        if ($message->receiver_id !== Auth::id()) {
+        $user = Auth::user();
+        
+        // User can update if they're the receiver, or if they're admin/modo
+        if ($message->receiver_id !== $user->id && 
+            !$user->isAdmin() && 
+            !$user->isModo()) {
             return response()->json(['message' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
         
@@ -129,110 +147,17 @@ class MessageController extends Controller
      */
     public function destroy(Message $message)
     {
-        // Authorization: only sender or receiver or admin can delete the message
-        if ($message->sender_id !== Auth::id() && 
-            $message->receiver_id !== Auth::id() && 
-            !Auth::user()->isAdmin()) {
+        $user = Auth::user();
+        
+        // User can delete if they're sender/receiver, or if they're admin/modo
+        if ($message->sender_id !== $user->id && 
+            $message->receiver_id !== $user->id && 
+            !$user->isAdmin() && 
+            !$user->isModo()) {
             return response()->json(['message' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
         
         $message->delete();
         return response()->json(null, Response::HTTP_NO_CONTENT);
-    }
-    
-    /**
-     * Get conversations (list of users the current user has exchanged messages with).
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function conversations()
-    {
-        $sentToUsers = Message::where('sender_id', Auth::id())
-                        ->select('receiver_id as user_id')
-                        ->distinct();
-                        
-        $receivedFromUsers = Message::where('receiver_id', Auth::id())
-                            ->select('sender_id as user_id')
-                            ->distinct();
-        
-        $userIds = $sentToUsers->union($receivedFromUsers)->pluck('user_id');
-        
-        $users = User::whereIn('id', $userIds)->get();
-        
-        $conversations = $users->map(function($user) {
-            $lastMessage = Message::where(function($query) use ($user) {
-                    $query->where(function($q) use ($user) {
-                        $q->where('sender_id', Auth::id())
-                        ->where('receiver_id', $user->id);
-                    })->orWhere(function($q) use ($user) {
-                        $q->where('sender_id', $user->id)
-                        ->where('receiver_id', Auth::id());
-                    });
-                })
-                ->with('sender')
-                ->latest()  
-                ->first(); 
-            
-            $unreadCount = Message::where('sender_id', $user->id)
-                            ->where('receiver_id', Auth::id())
-                            ->where('read', false)
-                            ->count();
-            
-            $formattedMessage = null;
-            if ($lastMessage) {
-                $formattedMessage = [
-                    'id' => $lastMessage->id,
-                    'content' => $lastMessage->content,
-                    'read' => $lastMessage->read,
-                    'sender' => [
-                        'id' => $lastMessage->sender->id,
-                        'name' => $lastMessage->sender->name
-                    ],
-                    'receiver_id' => $lastMessage->receiver_id,
-                    'created_at' => $lastMessage->created_at,
-                    'updated_at' => $lastMessage->updated_at
-                ];
-            }
-            
-            return [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name
-                ],
-                'receiver_id' => $user->id, // Adding the receiver_id explicitly
-                'last_message' => $formattedMessage,
-                'unread_count' => $unreadCount,
-                'last_activity' => $lastMessage ? $lastMessage->created_at : null
-            ];
-        })
-        ->sortByDesc('last_activity')  
-        ->values();
-        
-        return response()->json([
-            'conversations' => $conversations
-        ]);
-    }
-    
-    /**
-     * Mark all messages from a specific sender as read.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function markAllAsRead(Request $request)
-    {
-        $validated = $request->validate([
-            'sender_id' => 'required|exists:users,id'
-        ]);
-        
-        $count = Message::where('sender_id', $validated['sender_id'])
-                  ->where('receiver_id', Auth::id())
-                  ->where('read', false)
-                  ->update(['read' => true]);
-        
-        return response()->json([
-            'message' => "{$count} messages marked as read",
-            'updated_count' => $count
-        ]);
     }
 }
