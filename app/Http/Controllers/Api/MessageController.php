@@ -25,7 +25,7 @@ class MessageController extends Controller
         
         // Get users with whom the current user has conversations
         $conversations = DB::table('messages')
-            ->select('users.id', 'users.name', 'users.avatar', DB::raw('MAX(messages.created_at) as last_message_date'))
+            ->select('users.id', 'users.name', DB::raw('MAX(messages.created_at) as last_message_date'))
             ->join('users', function($join) use ($userId) {
                 $join->on('users.id', '=', 'messages.sender_id')
                     ->where('messages.receiver_id', '=', $userId)
@@ -39,7 +39,7 @@ class MessageController extends Controller
                     ->orWhere('messages.receiver_id', $userId);
             })
             ->where('users.id', '!=', $userId)
-            ->groupBy('users.id', 'users.name', 'users.avatar')
+            ->groupBy('users.id', 'users.name')
             ->orderBy('last_message_date', 'desc')
             ->get();
             
