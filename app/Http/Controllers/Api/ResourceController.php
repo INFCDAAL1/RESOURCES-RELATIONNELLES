@@ -31,23 +31,23 @@ class ResourceController extends Controller
     public function store(ResourceRequest $request)
     {
         $validated = $request->validated();
-        
+
         // Remove file from validated data to handle it separately
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             unset($validated['file']);
         }
-        
+
         // Create resource
         $resource = new Resource($validated);
         $resource->user_id = Auth::id();
         $resource->save();
-        
+
         // Handle file upload if present
         if (isset($file)) {
             $resource->uploadFile($file);
         }
-        
+
         return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
     }
 
@@ -59,7 +59,7 @@ class ResourceController extends Controller
         if(!$this->canRead($resource)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        
+
         return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
     }
 
@@ -74,10 +74,10 @@ class ResourceController extends Controller
 
 
         $validated = $request->validated();
-        
+
         // Update resource
         $resource->update($validated);
-        
+
         return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));
     }
 
@@ -89,16 +89,16 @@ class ResourceController extends Controller
         if(!$this->canEdit($resource)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-    
+
         // Delete associated file
         $resource->deleteFile();
-        
+
         // Delete the resource itself
         $resource->delete();
-        
+
         return response()->json(['message' => 'Resource deleted successfully']);
     }
-    
+
     /**
      * Download the resource file.
      */
@@ -108,17 +108,18 @@ class ResourceController extends Controller
         if(!$this->canRead($resource)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        
+
         if (!$resource->file_path || !Storage::exists($resource->file_path)) {
             return response()->json(['message' => 'File not found'], 404);
         }
-        
+
+        $name = $resource->name . '.' . pathinfo($resource->file_path, PATHINFO_EXTENSION);
         return Storage::download(
-            $resource->file_path, 
-            $resource->name . '.' . pathinfo($resource->file_path, PATHINFO_EXTENSION)
+            $resource->file_path,
+            $name
         );
     }
-    
+
     /**
      * Favorite a resource.
      */
@@ -151,45 +152,53 @@ class ResourceController extends Controller
     {
         $user = Auth::user();
 
-        if ($user && ($user->isAdmin() || $user->isModo())) {
-            $resources = Resource::with(['category', 'visibility', 'user', 'type'])
-                ->latest()
-                ->get();
-        } else {
-            $resources = Resource::with(['category', 'visibility', 'user', 'type'])
-                ->where('user_id', $user->id ?? null)
-                ->orWhere(function ($query) use ($user) {
-                    $query
-                        ->where('published', true)
-                        ->where('validated', true)
-                        ->where(function ($query) use ($user) {
-                            $query
-                                ->where('visibility_id', 1)
-                                ->orWhere(function ($query) use ($user) {
-                                    $query
-                                        ->where('visibility_id', 3)
-                                        ->whereHas('invitations', function ($query) use ($user) {
-                                            $query->where('receiver_id', $user->id ?? null)
-                                                ->where('status', 'accepted');
-                                        });
-                                });
-                        });
-                })
-                ->latest()
-                ->get();
+        $resources = Resource::with(['category', 'visibility', 'user', 'type'])
+            ->where('user_id', $user->id ?? null)
+            ->orWhere(function ($query) use ($user) {
+                $query
+                    ->where('published', true)
+                    ->where('validated', true)
+                    ->where(function ($query) use ($user) {
+                        $query
+                            ->where('visibility_id', 1)
+                            ->orWhere(function ($query) use ($user) {
+                                $query
+                                    ->where('visibility_id', 3)
+                                    ->whereHas('invitations', function ($query) use ($user) {
+                                        $query->where('receiver_id', $user->id ?? null)
+                                            ->where('status', 'accepted');
+                                    });
+                            });
+                    });
+            });
+
+        if($user && ($user->isAdmin() || $user->isModo())) {
+            $resources = $resources->orWhere('published', true);
         }
+
+        $resources = $resources
+            ->latest()
+            ->get();
 
         return ResourceResource::collection($resources);
     }
 
-    public function validateResource(Resource $resource)
+    public function validateResource(Request $request, Resource $resource)
     {
         $user = Auth::user();
         if (!$user || (!$user->isAdmin() && !$user->isModo())) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $resource->validated = true;
+        $validated = $request->validate([
+            'setTo' => 'required|boolean',
+        ]);
+
+        if ($validated['setTo']) {
+            $resource->validated = true;
+        } else {
+            $resource->validated = false;
+        }
         $resource->save();
 
         return new ResourceResource($resource->load(['type', 'category', 'visibility', 'user', 'origin']));

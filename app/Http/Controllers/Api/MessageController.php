@@ -15,17 +15,20 @@ use Illuminate\Support\Facades\DB;
 class MessageController extends Controller
 {
     /**
-     * Display a listing of the messages.
+     * Display a listing of conversations.
      *
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
     {
         $userId = Auth::id();
         
         // Get users with whom the current user has conversations
-        $conversations = DB::table('messages')
-            ->select('users.id', 'users.name', 'users.avatar', DB::raw('MAX(messages.created_at) as last_message_date'))
+        $userList = DB::table('messages')
+            ->select(
+                'users.id', 
+                'users.name'
+            )
             ->join('users', function($join) use ($userId) {
                 $join->on('users.id', '=', 'messages.sender_id')
                     ->where('messages.receiver_id', '=', $userId)
@@ -39,9 +42,51 @@ class MessageController extends Controller
                     ->orWhere('messages.receiver_id', $userId);
             })
             ->where('users.id', '!=', $userId)
-            ->groupBy('users.id', 'users.name', 'users.avatar')
-            ->orderBy('last_message_date', 'desc')
+            ->groupBy('users.id', 'users.name')
             ->get();
+        
+        // Now enrich each conversation with the last 5 messages
+        $conversations = [];
+        foreach ($userList as $user) {
+            // Get the last 5 messages
+            $lastMessages = Message::with('sender')
+                ->where(function($query) use ($userId, $user) {
+                    $query->where('sender_id', $userId)
+                          ->where('receiver_id', $user->id);
+                })
+                ->orWhere(function($query) use ($userId, $user) {
+                    $query->where('sender_id', $user->id)
+                          ->where('receiver_id', $userId);
+                })
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get()
+                ->map(function($message) {
+                    return [
+                        'id' => $message->id,
+                        'sender' => [
+                            'id' => $message->sender->id,
+                            'name' => $message->sender->name
+                        ],
+                        'created_at' => $message->created_at,
+                        'content' => $message->content
+                    ];
+                });
+                
+            // Add to result array with last_message as the last 5 messages
+            $conversations[] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'last_message' => $lastMessages
+            ];
+        }
+        
+        // Sort by the created_at of the first message in last_message array
+        usort($conversations, function($a, $b) {
+            $aTime = isset($a['last_message'][0]) ? strtotime($a['last_message'][0]['created_at']) : 0;
+            $bTime = isset($b['last_message'][0]) ? strtotime($b['last_message'][0]['created_at']) : 0;
+            return $bTime - $aTime;
+        });
             
         return response()->json($conversations);
     }
@@ -63,7 +108,7 @@ class MessageController extends Controller
             return response()->json(['message' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
         
-        // Get the last 15 messages between the two users
+        // Get all messages between the two users
         $messages = Message::where(function($query) use ($userId, $receiverId) {
                 $query->where('sender_id', $userId)
                       ->where('receiver_id', $receiverId);
@@ -72,11 +117,20 @@ class MessageController extends Controller
                 $query->where('sender_id', $receiverId)
                       ->where('receiver_id', $userId);
             })
-            ->with(['sender', 'receiver'])
-            ->orderBy('created_at', 'desc')
-            ->take(15)
+            ->with('sender')
+            ->orderBy('created_at', 'asc')  // Messages par ordre chronologique
             ->get()
-            ->reverse();
+            ->map(function($message) {
+                return [
+                    'id' => $message->id,
+                    'sender' => [
+                        'id' => $message->sender->id,
+                        'name' => $message->sender->name
+                    ],
+                    'created_at' => $message->created_at,
+                    'content' => $message->content
+                ];
+            });
             
         // Mark received messages as read
         Message::where('sender_id', $receiverId)
@@ -84,7 +138,7 @@ class MessageController extends Controller
             ->where('read', false)
             ->update(['read' => true]);
             
-        return MessageResource::collection($messages);
+        return response()->json($messages);
     }
 
     /**
