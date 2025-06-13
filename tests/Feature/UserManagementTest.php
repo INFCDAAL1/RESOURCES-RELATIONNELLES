@@ -21,13 +21,26 @@ class UserManagementTest extends TestCase
     /**
      * Test de création d'un compte citoyen (utilisateur standard)
      */
+    /*
     public function test_create_citizen_account()
     {
-        $this->markTestSkipped("Test ignoré");
-        
-        $this->assertTrue(true);
-    }
+        $response = $this->post('/register', [
+            'name' => 'Citoyen Test',
+            'email' => 'citoyen@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
 
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard'));
+        
+        // Vérifier que l'utilisateur a été créé avec le rôle 'user' par défaut
+        $user = User::where('email', 'citoyen@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertEquals('user', $user->role);
+        $this->assertTrue($user->is_active);
+    }
+    */
     /**
      * Test qu'un utilisateur désactivé ne peut pas se connecter
      */
