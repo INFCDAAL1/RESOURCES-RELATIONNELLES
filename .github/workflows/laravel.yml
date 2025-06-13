@@ -29,6 +29,8 @@ jobs:
       run: |
         mkdir -p database
         touch database/database.sqlite
+    - name: Run Migrations
+      run: php artisan migrate --no-interaction --force
     - name: Install Node.js
       uses: actions/setup-node@v3
       with:
