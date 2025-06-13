@@ -21,7 +21,6 @@ class UserManagementTest extends TestCase
     /**
      * Test de création d'un compte citoyen (utilisateur standard)
      */
-    /*
     public function test_create_citizen_account()
     {
         $response = $this->post('/register', [
@@ -40,8 +39,7 @@ class UserManagementTest extends TestCase
         $this->assertEquals('user', $user->role);
         $this->assertTrue($user->is_active);
     }
-    */
-    
+
     /**
      * Test qu'un utilisateur désactivé ne peut pas se connecter
      */
