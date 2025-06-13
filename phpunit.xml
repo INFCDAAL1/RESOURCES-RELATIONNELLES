@@ -28,5 +28,9 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Configuration SQLite spécifique pour les tests -->
+        <env name="DB_FOREIGN_KEYS" value="false"/>
+        <env name="DB_PRAGMA_JOURNAL_MODE" value="MEMORY"/>
+        <env name="DB_PRAGMA_SYNCHRONOUS" value="OFF"/>
     </php>
 </phpunit>

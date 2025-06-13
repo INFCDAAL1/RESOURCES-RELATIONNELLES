@@ -43,8 +43,19 @@ jobs:
     - name: Directory Permissions
       run: chmod -R 777 storage bootstrap/cache
 
-    - name: Run Migrations
-      run: php artisan migrate --no-interaction --force
+    - name: Run Migrations and Seed
+      run: |
+        php artisan migrate --no-interaction --force
+        php artisan db:seed --class=TestDatabaseSeeder --no-interaction --force
+
+    - name: Debug Database Status
+      run: |
+        php artisan migrate:status
+        php -r "
+        \$pdo = new PDO('sqlite::memory:');
+        \$pdo->exec('CREATE TABLE test (id INTEGER)');
+        echo 'SQLite in-memory test: OK' . PHP_EOL;
+        "
 
     - name: Install Node.js
       uses: actions/setup-node@v3
