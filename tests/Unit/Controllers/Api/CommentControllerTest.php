@@ -123,7 +123,7 @@ class CommentControllerTest extends TestCase
 
     public function test_show_returns_comment_for_owner()
     {
-         $this->markTestSkipped("Test ignoré");
+        $this->markTestSkipped("Test ignoré");
         
         $this->assertTrue(true);
     }
