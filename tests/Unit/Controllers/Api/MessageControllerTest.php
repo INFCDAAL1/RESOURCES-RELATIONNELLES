@@ -77,26 +77,6 @@ class MessageControllerTest extends TestCase
         $this->controller->shouldReceive('index')
             ->once()
             ->andReturn(response()->json($responseData));
-            
-        // Simuler une réponse de l'index au lieu d'appeler la méthode réelle
-        $responseData = [
-            [
-                'id' => $this->otherUser->id,
-                'name' => $this->otherUser->name,
-                'unread_count' => 1,
-                'message' => [
-                    'id' => 2,
-                    'content' => 'Test message 2',
-                    'created_at' => now()->toDateTimeString(),
-                    'is_sender' => false,
-                    'read' => false
-                ]
-            ]
-        ];
-        
-        $this->controller->shouldReceive('index')
-            ->once()
-            ->andReturn(response()->json($responseData));
         
         // Exécuter la méthode à tester
         $response = $this->controller->index(new Request());
@@ -106,7 +86,7 @@ class MessageControllerTest extends TestCase
         $responseData = json_decode($response->getContent(), true);
         $this->assertCount(1, $responseData);
     }
-    
+
     public function test_store_creates_new_message()
     {
         // Créer les données du message
@@ -188,14 +168,9 @@ class MessageControllerTest extends TestCase
         
         // Exécuter la méthode
         $controller = new MessageController(); // Instance non mockée pour ce test
-        $response = $controller->getConversation(new Request(), $this->otherUser->id);
-        $controller = new MessageController(); // Instance non mockée pour ce test
         $response = $controller->update($request, $message);
         
         // Vérifier les résultats
-        $this->assertInstanceOf(\Illuminate\Http\Resources\Json\AnonymousResourceCollection::class, $response);
-        
-        // Vérifier que le message est marqué comme lu
         $this->assertInstanceOf(MessageResource::class, $response);
         $this->assertTrue($message->fresh()->read);
     }
@@ -211,16 +186,6 @@ class MessageControllerTest extends TestCase
             'read' => false
         ]);
         
-        $regularUser = User::factory()->create(['role' => 'user']);
-        
-        // Mock Auth
-        Auth::shouldReceive('user')
-            ->andReturn($regularUser);
-        
-        // Mock la requête
-        $request = Mockery::mock(Request::class);
-        $request->shouldReceive('validate')
-            ->andReturn(['read' => true]);
         $regularUser = User::factory()->create(['role' => 'user']);
         
         // Mock Auth
@@ -248,6 +213,7 @@ class MessageControllerTest extends TestCase
             'content' => 'Test message',
             'sender_id' => $this->user->id,
             'receiver_id' => $this->otherUser->id,
+            'read' => false
         ]);
         
         // Mock Auth
@@ -288,17 +254,5 @@ class MessageControllerTest extends TestCase
         // Vérifier les résultats
         $this->assertEquals(Response::HTTP_FORBIDDEN, $response->getStatusCode());
         $this->assertEquals('Unauthorized', json_decode($response->getContent())->message);
-        
-        // Mock Auth
-        Auth::shouldReceive('user')
-            ->andReturn($this->user);
-        
-        // Exécuter la méthode
-        $controller = new MessageController(); 
-        $response = $controller->destroy($message);
-        
-        // Vérifier les résultats
-        $this->assertEquals(Response::HTTP_NO_CONTENT, $response->getStatusCode());
-        $this->assertDatabaseMissing('messages', ['id' => $message->id]);
     }
 }
