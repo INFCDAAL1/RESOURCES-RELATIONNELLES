@@ -41,6 +41,7 @@ class UserManagementTest extends TestCase
         $this->assertTrue($user->is_active);
     }
     */
+    
     /**
      * Test qu'un utilisateur désactivé ne peut pas se connecter
      */
