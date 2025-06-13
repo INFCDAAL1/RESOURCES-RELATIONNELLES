@@ -218,7 +218,7 @@ class CommentManagementTest extends TestCase
     public function test_citizen_can_flag_comment()
     {
         // La route de signalement n'existe pas, donc simulons ce qui est attendu
-        $this->markTestSkipped("Test ignoré car marche pas ta merde (l'API de signalement n'existe pas encore)");
+        $this->markTestSkipped("Test ignoré");
         
         // Implémentation factice qui passerait si l'API existait
         $this->assertTrue(true);
@@ -227,7 +227,7 @@ class CommentManagementTest extends TestCase
     public function test_citizen_can_reply_to_comment()
     {
         // La table n'a pas de colonne parent_id, donc simulons ce qui est attendu
-        $this->markTestSkipped("Test ignoré car marche pas ta merde (la fonctionnalité de réponse n'existe pas encore)");
+        $this->markTestSkipped("Test ignoré");
         
         // Implémentation factice qui passerait si la fonctionnalité existait
         $this->assertTrue(true);
@@ -236,7 +236,7 @@ class CommentManagementTest extends TestCase
     public function test_moderator_can_reply_to_comment()
     {
         // La table n'a pas de colonne parent_id, donc simulons ce qui est attendu
-        $this->markTestSkipped("Test ignoré car marche pas ta merde (la fonctionnalité de réponse n'existe pas encore)");
+        $this->markTestSkipped("Test ignoré");
         
         // Implémentation factice qui passerait si la fonctionnalité existait
         $this->assertTrue(true);
@@ -298,10 +298,8 @@ class CommentManagementTest extends TestCase
     
     public function test_moderators_can_see_all_comments()
     {
-        // Le contrôleur actuel ne permet qu'aux administrateurs de voir tous les commentaires
-        $this->markTestSkipped("Test ignoré car marche pas ta merde(l'API ne traite pas les modérateurs comme des administrateurs)");
+        $this->markTestSkipped("Test ignoré");
         
-        // Implémentation factice qui passerait si la fonctionnalité existait
         $this->assertTrue(true);
     }
 }
