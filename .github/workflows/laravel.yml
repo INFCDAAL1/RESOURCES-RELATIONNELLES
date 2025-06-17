@@ -2,26 +2,21 @@ name: Laravel CI
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "dev" ]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "dev" ]
 
 jobs:
   test:
-    runs-on: ubuntu-24.04
-
-    strategy:
-      matrix:
-        php-version: [8.4]
-        node-version: [22]
+    runs-on: ubuntu-latest
 
     services:
       mysql:
         image: mariadb:11
         env:
           MYSQL_DATABASE: testing
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_ALLOW_EMPTY_PASSWORD: no
+          MYSQL_USER: root
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
           - 3306:3306
         options: >-
@@ -36,7 +31,7 @@ jobs:
       DB_PORT: 3306
       DB_DATABASE: testing
       DB_USERNAME: root
-      DB_PASSWORD: password
+      DB_PASSWORD:
       APP_ENV: testing
       APP_KEY: base64:ctJ9T+sHPspSesV/J894OBCT18tyaRphhfMEZ8NJ6og=
       APP_DEBUG: true
@@ -55,14 +50,14 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: ${{ matrix.php-version }}
+        php-version: '8.4'
         extensions: pdo_mysql,mbstring,xml,bcmath,intl,zip,gd,curl
         coverage: xdebug
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: '22'
         cache: 'npm'
 
     - name: Copy .env
@@ -75,7 +70,7 @@ jobs:
         key: dependencies-composer-${{ hashFiles('composer.json') }}
 
     - name: Install PHP Dependencies
-      run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      run: composer install --no-dev --prefer-dist --optimize-autoloader
 
     - name: Install Node Dependencies
       run: npm ci
@@ -124,7 +119,7 @@ jobs:
         name: backend-coverage
 
   security:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
