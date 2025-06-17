@@ -82,6 +82,10 @@ COPY nginx.conf /etc/nginx/http.d/default.conf
 # Donner les permissions appropriées
 RUN chown -R www-data:www-data /var/www/html
 
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Start Nginx server
 EXPOSE 80
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

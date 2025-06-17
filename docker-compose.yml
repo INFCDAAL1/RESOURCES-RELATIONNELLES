@@ -21,7 +21,7 @@ services:
             - "traefik.enable=true"  # Activer Traefik pour ce service
             - "traefik.http.routers.front.rule=Host(`rr.qalpuch.cc`)"  # Règle de routage pour le service front
             - "traefik.http.routers.front.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-            - "traefik.http.services.front.loadbalancer.server.port=80"  # Port du service
+            - "traefik.http.services.front.loadbalancer.server.port=8080"  # Port du service
         depends_on:
             -   api
         networks:
@@ -32,9 +32,9 @@ services:
             - "traefik.enable=true"  # Activer Traefik pour ce service
             - "traefik.http.routers.api.rule=PathPrefix(`/api`)"  # Règle de routage pour le service API
             - "traefik.http.routers.front.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-            - "traefik.http.services.api.loadbalancer.server.port=80"  # Port du service
+            - "traefik.http.services.api.loadbalancer.server.port=8090"  # Port du service
         healthcheck:
-            test: ["curl", "-f", "${APP_URL}/up"]
+            test: ["CMD","curl", "-f", "${APP_URL}/up"]
             interval: 30s
             timeout: 10s
             retries: 3
@@ -70,4 +70,3 @@ volumes:
 networks:
     db:
     traefik:
-        external: true  # Utiliser un réseau externe pour Traefik
