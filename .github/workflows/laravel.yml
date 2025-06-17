@@ -27,7 +27,7 @@ jobs:
 
     env:
       DB_CONNECTION: mysql
-      DB_HOST: 127.0.0.1
+      DB_HOST: mysql
       DB_PORT: 3306
       DB_DATABASE: testing
       DB_USERNAME: root
@@ -85,7 +85,7 @@ jobs:
       run: |
         echo "Waiting for MariaDB to be ready..."
         for i in {1..30}; do
-          nc -z 127.0.0.1 3306 && echo "DB is up!" && break
+          nc -z mysql 3306 && echo "DB is up!" && break
           echo "Waiting..."
           sleep 2
         done
