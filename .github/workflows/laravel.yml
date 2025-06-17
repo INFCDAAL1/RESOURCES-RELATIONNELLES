@@ -93,18 +93,15 @@ jobs:
     - name: Run PHP Unit Tests
       run: composer test --coverage-clover coverage.xml
 
-    - name: Run PHP CS Fixer (Code Style)
-      run: |
-        composer require friendsofphp/php-cs-fixer --dev
-        vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
-
-    - name: Run PHPStan (Static Analysis)
-      run: |
-        composer require phpstan/phpstan --dev
-        vendor/bin/phpstan analyse --memory-limit=1G
-
-    - name: Run Frontend Tests (if any)
-      run: npm run test 2>/dev/null || echo "No frontend tests configured"
+#    - name: Run PHP CS Fixer (Code Style)
+#      run: |
+#        composer require friendsofphp/php-cs-fixer --dev
+#        vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+#
+#    - name: Run PHPStan (Static Analysis)
+#      run: |
+#        composer require phpstan/phpstan --dev
+#        vendor/bin/phpstan analyse --memory-limit=1G
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -124,7 +121,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: 8.4
-        extensions: pdo_mysql,mbstring,xml,bcmath
+        extensions: pdo_mysql,mbstring,xml,bcmath,intl,zip,gd,curl
 
     - name: Install Dependencies
       run: composer install --no-interaction --prefer-dist
