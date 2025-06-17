@@ -18,7 +18,9 @@
         "tymon/jwt-auth": "^2.2"
     },
     "require-dev": {
+        "enlightn/security-checker": "^2.0",
         "fakerphp/faker": "^1.23",
+        "friendsofphp/php-cs-fixer": "^3.75",
         "laravel/breeze": "^2.2",
         "laravel/pail": "^1.1",
         "laravel/pint": "^1.13",
@@ -26,7 +28,8 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.1",
         "pestphp/pest": "^3.7",
-        "pestphp/pest-plugin-laravel": "^3.0"
+        "pestphp/pest-plugin-laravel": "^3.0",
+        "phpstan/phpstan": "^2.1"
     },
     "autoload": {
         "psr-4": {
@@ -59,7 +62,31 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
-        ]
+        ],
+        "test": [
+            "@php artisan test"
+        ],
+        "test-coverage": [
+            "@php artisan test --coverage-clover coverage.xml"
+        ],
+        "lint": [
+            "@php vendor/bin/pint --test"
+        ],
+        "lint-fix": [
+            "@php vendor/bin/pint"
+        ],
+        "analyse": [
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "security": [
+            "composer audit"
+        ],
+        "quality": [
+            "@lint",
+            "@analyse", 
+            "@security",
+            "@test"
+        ]     
     },
     "extra": {
         "laravel": {

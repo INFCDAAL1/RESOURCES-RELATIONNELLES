@@ -1,22 +1,27 @@
-name: Laravel
+name: Laravel CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
 
 jobs:
-  laravel-tests:
+  test:
     runs-on: ubuntu-24.04
+    
+    strategy:
+      matrix:
+        php-version: [8.4]
+        node-version: [22]
 
     services:
       mysql:
-        image: mariadb:10.6
+        image: mariadb:11
         env:
           MYSQL_DATABASE: testing
-          MYSQL_USER: root
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_ALLOW_EMPTY_PASSWORD: no
         ports:
           - 3306:3306
         options: >-
@@ -31,7 +36,7 @@ jobs:
       DB_PORT: 3306
       DB_DATABASE: testing
       DB_USERNAME: root
-      DB_PASSWORD:
+      DB_PASSWORD: password
       APP_ENV: testing
       APP_KEY: base64:ctJ9T+sHPspSesV/J894OBCT18tyaRphhfMEZ8NJ6og=
       APP_DEBUG: true
@@ -41,25 +46,47 @@ jobs:
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: array
       TELESCOPE_ENABLED: false
+      JWT_SECRET: testing_secret_key_for_jwt
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    - uses: shivammathur/setup-php@v2
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.4'
-        extensions: pdo_mysql,mbstring,xml,bcmath
+        php-version: ${{ matrix.php-version }}
+        extensions: pdo_mysql,mbstring,xml,bcmath,intl,zip,gd,curl
+        coverage: xdebug
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
 
     - name: Copy .env
-      run: cp .env.example .env
+      run: cp .env.testing .env
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.composer/cache/files
+        key: dependencies-composer-${{ hashFiles('composer.json') }}
 
     - name: Install PHP Dependencies
-      run: composer install --no-interaction --prefer-dist
+      run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+    - name: Install Node Dependencies
+      run: npm ci
+
+    - name: Build frontend assets
+      run: npm run build
 
     - name: Generate App Key
       run: php artisan key:generate
 
-    - name: Wait for DB
+    - name: Wait for Database
       run: |
         echo "Waiting for MariaDB to be ready..."
         for i in {1..30}; do
@@ -73,5 +100,68 @@ jobs:
         php artisan migrate --no-interaction --force
         php artisan db:seed --class=TestDatabaseSeeder --no-interaction --force
 
-    - name: Run Tests
-      run: php artisan test
+    - name: Run PHP Unit Tests
+      run: php artisan test --coverage-clover coverage.xml
+
+    - name: Run PHP CS Fixer (Code Style)
+      run: |
+        composer require friendsofphp/php-cs-fixer --dev
+        vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+
+    - name: Run PHPStan (Static Analysis)
+      run: |
+        composer require phpstan/phpstan --dev
+        vendor/bin/phpstan analyse --memory-limit=1G
+
+    - name: Run Frontend Tests (if any)
+      run: npm run test 2>/dev/null || echo "No frontend tests configured"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: backend
+        name: backend-coverage
+
+  security:
+    runs-on: ubuntu-24.04
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.4
+        extensions: pdo_mysql,mbstring,xml,bcmath
+
+    - name: Install Dependencies
+      run: composer install --no-interaction --prefer-dist
+
+    - name: Run Security Check
+      run: |
+        composer require enlightn/security-checker --dev
+        vendor/bin/security-checker security:check composer.lock
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    needs: [test, security]
+    runs-on: ubuntu-24.04
+    
+    steps:
+    - name: Deploy to Staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Ajoutez ici vos scripts de déploiement
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [test, security]
+    runs-on: ubuntu-24.04
+    
+    steps:
+    - name: Deploy to Production
+      run: |
+        echo "Deploying to production environment..."
+        # Ajoutez ici vos scripts de déploiement
