@@ -27,7 +27,7 @@ services:
         networks:
             - traefik
     api:
-        image: ghcr.io/infcdaal1/rr-vue:latest
+        image: ghcr.io/infcdaal1/rr:latest
         labels:
             - "traefik.enable=true"  # Activer Traefik pour ce service
             - "traefik.http.routers.api.rule=PathPrefix(`/api`)"  # Règle de routage pour le service API
