@@ -65,7 +65,7 @@ jobs:
         key: dependencies-composer-${{ hashFiles('composer.json') }}
 
     - name: Install PHP Dependencies
-      run: composer install --no-dev --prefer-dist --optimize-autoloader
+      run: composer install --prefer-dist --optimize-autoloader
 
     - name: Install Node Dependencies
       run: npm ci
@@ -91,7 +91,7 @@ jobs:
         php artisan db:seed --class=TestDatabaseSeeder --no-interaction --force
 
     - name: Run PHP Unit Tests
-      run: php artisan test --coverage-clover coverage.xml
+      run: composer test --coverage-clover coverage.xml
 
     - name: Run PHP CS Fixer (Code Style)
       run: |
