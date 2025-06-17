@@ -1,0 +1,12 @@
+parameters:
+    level: 6
+    paths:
+        - app
+        - config
+        - database/seeders
+        - routes
+    ignoreErrors:
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'
+        - '#Call to an undefined method Illuminate\\Database\\Query\\Builder#'
+    bootstrapFiles:
+        - vendor/autoload.php
