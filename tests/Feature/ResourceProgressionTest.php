@@ -69,7 +69,7 @@ class ResourceProgressionTest extends TestCase
             'validated' => true,
             'category_id' => $category->id,
             'visibility_id' => $visibility->id,
-            'user_id' => $this->otherCitizen->id, // Créée par l'autre citoyen
+            'user_id' => $this->otherCitizen->id,
             'link' => null,
             'file_path' => null,
         ]);
@@ -103,7 +103,6 @@ class ResourceProgressionTest extends TestCase
     $this->assertCount(1, $favorites);
     
     // Vérifier l'ID de la ressource sans accéder à resource_id
-    // Soit en utilisant la méthode d'accès standard
     if (isset($favorites->first()->resource_id)) {
         $this->assertEquals($this->resource->id, $favorites->first()->resource_id);
     }
@@ -320,7 +319,6 @@ class ResourceProgressionTest extends TestCase
     $this->assertCount(1, $savedResources);
     
     // Vérifier que les interactions sont bien associées aux bonnes ressources
-    // sans accéder directement à resource_id
     $this->assertDatabaseHas('resource_interactions', [
         'user_id' => $this->citizen->id,
         'resource_id' => $this->resource->id,
@@ -467,7 +465,7 @@ class ResourceProgressionTest extends TestCase
         // Connecter le citoyen
         $this->actingAs($this->citizen);
         
-        // 1. D'abord, mettre la ressource de côté pour plus tard
+        // 1. Mettre la ressource de côté
         ResourceInteraction::create([
             'user_id' => $this->citizen->id,
             'resource_id' => $this->resourceActivity->id,
@@ -475,7 +473,7 @@ class ResourceProgressionTest extends TestCase
             'notes' => 'À faire bientôt',
         ]);
         
-        // 2. Ajouter aux favoris car c'est intéressant
+        // 2. Ajouter aux favoris 
         ResourceInteraction::create([
             'user_id' => $this->citizen->id,
             'resource_id' => $this->resourceActivity->id,
@@ -483,7 +481,7 @@ class ResourceProgressionTest extends TestCase
             'notes' => 'Semble très intéressant',
         ]);
         
-        // 3. Inviter un ami à participer
+        // 3. Inviter un ami 
         $invitation = Invitation::create([
             'sender_id' => $this->citizen->id,
             'receiver_id' => $this->otherCitizen->id,
@@ -495,7 +493,7 @@ class ResourceProgressionTest extends TestCase
         $invitation->status = 'accepted';
         $invitation->save();
         
-        // 5. Échanger des messages
+        // 5. Échange des messages
         $message = Message::create([
             'sender_id' => $this->citizen->id,
             'receiver_id' => $this->otherCitizen->id,
@@ -503,7 +501,7 @@ class ResourceProgressionTest extends TestCase
             'read' => false,
         ]);
         
-        // 6. Démarrer l'activité (marquer comme exploitée)
+        // 6. Démarrer l'activité
         ResourceInteraction::create([
             'user_id' => $this->citizen->id,
             'resource_id' => $this->resourceActivity->id,

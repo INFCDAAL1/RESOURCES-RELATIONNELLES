@@ -26,10 +26,8 @@ class ResourceCreationTest extends TestCase
     {
         parent::setUp();
         
-        // Configurer le système de stockage fictif
         Storage::fake('local');
         
-        // Créer les données de base nécessaires
         $this->citizen = User::factory()->create([
             'role' => 'user',
             'is_active' => true,
@@ -45,7 +43,6 @@ class ResourceCreationTest extends TestCase
             'is_active' => true,
         ]);
         
-        // Créer ou récupérer les entités existantes pour éviter les doublons
         $this->createOrRetrieveBaseEntities();
     }
     
@@ -86,27 +83,26 @@ class ResourceCreationTest extends TestCase
     $response = $this->post('/api/resources', [
         'name' => 'Ma première ressource',
         'description' => 'Description de ma ressource',
-        'published' => false, // Par défaut non publiée
+        'published' => false, 
         'category_id' => $this->category->id,
         'visibility_id' => $this->visibility->id,
         'file' => $file,
     ]);
     
-    $response->assertStatus(201); // Created
+    $response->assertStatus(201); 
     
     // Vérifier que la ressource a été créée en base de données
     $this->assertDatabaseHas('resources', [
         'name' => 'Ma première ressource',
         'description' => 'Description de ma ressource',
         'published' => false,
-        'validated' => false, // Par défaut non validée
+        'validated' => false,
         'user_id' => $this->citizen->id,
     ]);
     
     // Récupérer la ressource créée
     $resource = Resource::where('name', 'Ma première ressource')->first();
     
-    // Vérifier que file_path est défini, mais ne pas vérifier l'existence réelle du fichier
     $this->assertNotNull($resource->file_path);
 }
     
@@ -139,7 +135,7 @@ class ResourceCreationTest extends TestCase
         'visibility_id' => $this->visibility->id,
     ]);
     
-    $response->assertStatus(200); // Succès attendu
+    $response->assertStatus(200);
     
     // Vérifier que la ressource a été modifiée
     $this->assertDatabaseHas('resources', [

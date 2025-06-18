@@ -21,7 +21,6 @@ class CommentManagementTest extends TestCase
     {
         parent::setUp();
         
-        // Créer des données de test directement avec le Query Builder
         $originId = DB::table('origins')->where('libelle', 'Origine Test')->first()?->id;
         if (!$originId) {
             $originId = DB::table('origins')->insertGetId([
@@ -164,7 +163,6 @@ class CommentManagementTest extends TestCase
     
     public function test_moderator_can_moderate_comment()
     {
-        // Créer un commentaire à modérer
         $comment = Comment::create([
             'content' => 'Commentaire à modérer',
             'status' => 'published',
@@ -172,10 +170,8 @@ class CommentManagementTest extends TestCase
             'user_id' => $this->citizen->id,
         ]);
         
-        // Utiliser l'admin qui a les permissions nécessaires
         $this->actingAs($this->admin);
         
-        // Modérer le commentaire via l'API
         $response = $this->put("/api/comments/{$comment->id}", [
             'content' => $comment->content,
             'status' => 'hidden', 
@@ -191,7 +187,6 @@ class CommentManagementTest extends TestCase
     
     public function test_citizen_cannot_moderate_comment()
     {
-        // Créer un commentaire à modérer
         $comment = Comment::create([
             'content' => 'Commentaire à modérer',
             'status' => 'published',
@@ -217,34 +212,27 @@ class CommentManagementTest extends TestCase
     
     public function test_citizen_can_flag_comment()
     {
-        // La route de signalement n'existe pas, donc simulons ce qui est attendu
         $this->markTestSkipped("Test ignoré");
         
-        // Implémentation factice qui passerait si l'API existait
         $this->assertTrue(true);
     }
     
     public function test_citizen_can_reply_to_comment()
     {
-        // La table n'a pas de colonne parent_id, donc simulons ce qui est attendu
         $this->markTestSkipped("Test ignoré");
         
-        // Implémentation factice qui passerait si la fonctionnalité existait
         $this->assertTrue(true);
     }
     
     public function test_moderator_can_reply_to_comment()
     {
-        // La table n'a pas de colonne parent_id, donc simulons ce qui est attendu
         $this->markTestSkipped("Test ignoré");
         
-        // Implémentation factice qui passerait si la fonctionnalité existait
         $this->assertTrue(true);
     }
     
     public function test_users_can_only_see_published_comments()
     {
-        // Créer différents commentaires avec différents statuts
         $publishedComment = Comment::create([
             'content' => 'Commentaire publié',
             'status' => 'published',

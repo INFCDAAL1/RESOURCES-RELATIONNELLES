@@ -14,7 +14,6 @@ class UserManagementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Nettoyer la base de données et appliquer les migrations
         $this->artisan('migrate:fresh');
     }
 

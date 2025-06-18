@@ -106,7 +106,7 @@ class MessageControllerTest extends TestCase
             ->andReturn($this->user->id);
         
         // Exécuter la méthode
-        $controller = new MessageController(); // Instance non mockée pour ce test
+        $controller = new MessageController();
         $response = $controller->store($request);
         
         // Vérifier les résultats
@@ -135,7 +135,7 @@ class MessageControllerTest extends TestCase
             ->andReturn($this->user->id);
         
         // Exécuter la méthode
-        $controller = new MessageController(); // Instance non mockée pour ce test
+        $controller = new MessageController();
         $response = $controller->getConversation(new Request(), 999);
         
         // Vérifier les résultats
@@ -167,7 +167,7 @@ class MessageControllerTest extends TestCase
             ->andReturn(['read' => true]);
         
         // Exécuter la méthode
-        $controller = new MessageController(); // Instance non mockée pour ce test
+        $controller = new MessageController();
         $response = $controller->update($request, $message);
         
         // Vérifier les résultats
@@ -198,7 +198,7 @@ class MessageControllerTest extends TestCase
             ->andReturn(['read' => true]);
         
         // Exécuter la méthode
-        $controller = new MessageController(); // Instance non mockée pour ce test
+        $controller = new MessageController();
         $response = $controller->update($request, $message);
         
         // Vérifier les résultats
@@ -221,7 +221,7 @@ class MessageControllerTest extends TestCase
             ->andReturn($this->user);
         
         // Exécuter la méthode
-        $controller = new MessageController(); // Instance non mockée pour ce test
+        $controller = new MessageController();
         $response = $controller->destroy($message);
         
         // Vérifier les résultats
@@ -248,7 +248,7 @@ class MessageControllerTest extends TestCase
             ->andReturn($regularUser);
         
         // Exécuter la méthode
-        $controller = new MessageController(); // Instance non mockée pour ce test
+        $controller = new MessageController();
         $response = $controller->destroy($message);
         
         // Vérifier les résultats
