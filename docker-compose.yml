@@ -1,6 +1,7 @@
 services:
     traefik:
         image: traefik:v3.4.1
+        restart: unless-stopped
         command:
             - "--log.level=DEBUG"
             - "--providers.docker=true"  # Activer le provider Docker
@@ -28,6 +29,7 @@ services:
             - traefik  # Utiliser le réseau Traefik pour la communication entre les services
     front:
         image: ghcr.io/infcdaal1/rr-vue:latest
+        restart: unless-stopped
         #image: rr-vue:dev
         labels:
             - "traefik.enable=true"  # Activer Traefik pour ce service
@@ -52,6 +54,7 @@ services:
             - traefik
     api:
         image: ghcr.io/infcdaal1/rr:latest
+        restart: unless-stopped
 #        build:
 #            context: .
 #            dockerfile: Dockerfile
@@ -72,6 +75,7 @@ services:
             - traefik
     mariadb:
         image: 'mariadb:11'
+        restart: unless-stopped
         environment:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ROOT_HOST: '0.0.0.0'
@@ -84,6 +88,7 @@ services:
             - db
     watchtower:
         image: containrrr/watchtower:latest
+        restart: unless-stopped
         command: --interval 30 --cleanup  # Vérifier les mises à jour toutes les 30 secondes et nettoyer les images obsolètes
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"  # Accès au socket Docker pour surveiller les conteneurs
