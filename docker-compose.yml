@@ -3,15 +3,24 @@ services:
         image: traefik:v3.4.1
         command:
             - "--providers.docker=true"  # Activer le provider Docker
+            - "--providers.docker.exposedbydefault=false" # Ne pas exposer les conteneurs par défaut
             - "--entrypoints.web.address=:80"  # Définir le point d'entrée pour le trafic HTTP
-            - "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
             - "--entrypoints.websecure.address=:443"  # Définir le point d'entrée pour le trafic HTTPS
+            - "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
             - "--entrypoints.websecure.http.tls=true"  # Activer TLS pour le point d'entrée HTTPS
+            - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
+            - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+            - "--certificatesresolvers.cloudflare.acme.email=${CF_API_EMAIL}"
+            - "--certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json"
+        environment:
+            - CF_API_EMAIL=${CF_API_EMAIL}
+            - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
         ports:
             - "80:80"  # Exposer le port 80 pour le trafic HTTP
             - "443:443"  # Exposer le port 443 pour le trafic HTTPS
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+            - "./letsencrypt:/letsencrypt"
         networks:
             - traefik  # Utiliser le réseau Traefik pour la communication entre les services
     front:
@@ -26,12 +35,27 @@ services:
             -   api
         networks:
             - traefik
+    front-dev:
+        image: ghcr.io/infcdaal1/rr-vue:dev
+        #image: rr-vue:dev
+        labels:
+            - "traefik.enable=true"  # Activer Traefik pour ce service
+            - "traefik.http.routers.frontdev.rule=Host(`rr-dev.qalpuch.cc`)"  # Règle de routage pour le service front
+            - "traefik.http.routers.frontdev.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+            - "traefik.http.services.frontdev.loadbalancer.server.port=8070"  # Port du service
+        depends_on:
+            - api
+        networks:
+            - traefik
     api:
-        image: ghcr.io/infcdaal1/rr:latest
+        #image: ghcr.io/infcdaal1/rr:latest
+        build:
+            context: .
+            dockerfile: Dockerfile
         labels:
             - "traefik.enable=true"  # Activer Traefik pour ce service
             - "traefik.http.routers.api.rule=PathPrefix(`/api`)"  # Règle de routage pour le service API
-            - "traefik.http.routers.front.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+            - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
             - "traefik.http.services.api.loadbalancer.server.port=8090"  # Port du service
         healthcheck:
             test: ["CMD","curl", "-f", "${APP_URL}/up"]
@@ -59,8 +83,8 @@ services:
         image: containrrr/watchtower:latest
         command: --interval 30 --cleanup  # Vérifier les mises à jour toutes les 30 secondes et nettoyer les images obsolètes
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock  # Accès au socket Docker pour surveiller les conteneurs
-            - ~/.docker/config.json:/config.json
+            - "/var/run/docker.sock:/var/run/docker.sock"  # Accès au socket Docker pour surveiller les conteneurs
+            - "~/.docker/config.json:/config.json"
         networks:
             - traefik
 volumes:

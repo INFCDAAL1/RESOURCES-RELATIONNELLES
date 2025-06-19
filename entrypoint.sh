@@ -8,7 +8,7 @@ error_exit() {
 
 # Vérifier la connexion à la base de données
 echo "Vérification de la connexion à la base de données..."
-until php artisan migrate --pretend; do
+until php -r "new PDO('mysql:host=$DB_HOST;dbname=$DB_DATABASE', '$DB_USER', '$DB_PASSWORD');" 2>/dev/null; do
     echo "Attente de la base de données..."
     sleep 5
 done
