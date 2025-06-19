@@ -7,8 +7,10 @@ services:
             - "--providers.docker.exposedbydefault=false" # Ne pas exposer les conteneurs par défaut
             - "--entrypoints.web.address=:80"  # Définir le point d'entrée pour le trafic HTTP
             - "--entrypoints.websecure.address=:443"  # Définir le point d'entrée pour le trafic HTTPS
-            - "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
+            #- "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
             - "--entrypoints.websecure.http.tls=true"  # Activer TLS pour le point d'entrée HTTPS
+            - "--certificatesresolvers.cloudflare.acme.httpchallenge=true"
+            - "--certificatesresolvers.cloudflare.acme.httpchallenge.entrypoint=web"
             - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
             - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
             - "--certificatesresolvers.cloudflare.acme.email=${CF_API_EMAIL}"
@@ -95,3 +97,4 @@ volumes:
 networks:
     db:
     traefik:
+        name: web
