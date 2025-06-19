@@ -2,14 +2,12 @@ services:
     traefik:
         image: traefik:v3.4.1
         command:
-            - "--log.level=DEBUG"
-            - "--api.insecure=true"
             - "--providers.docker=true"  # Activer le provider Docker
             - "--providers.docker.exposedbydefault=false" # Ne pas exposer les conteneurs par défaut
             - "--entrypoints.web.address=:80"  # Définir le point d'entrée pour le trafic HTTP
             - "--entrypoints.websecure.address=:443"  # Définir le point d'entrée pour le trafic HTTPS
             - "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
-            #- "--entrypoints.websecure.http.tls=true"  # Activer TLS pour le point d'entrée HTTPS
+            - "--entrypoints.websecure.http.tls=true"  # Activer TLS pour le point d'entrée HTTPS
             - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
             - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
             - "--certificatesresolvers.cloudflare.acme.email=${CF_API_EMAIL}"
@@ -20,7 +18,6 @@ services:
         ports:
             - "80:80"  # Exposer le port 80 pour le trafic HTTP
             - "443:443"  # Exposer le port 443 pour le trafic HTTPS
-            - "8080:8080" # Exposer le port 8080 pour l'interface de gestion de Traefik
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
             - "./letsencrypt:/letsencrypt"
@@ -62,11 +59,6 @@ services:
             - "traefik.http.routers.api.rule=PathPrefix(`/api`)"  # Règle de routage pour le service API
             - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
             - "traefik.http.services.api.loadbalancer.server.port=8090"  # Port du service
-        healthcheck:
-            test: ["CMD","curl", "-f", "${APP_URL}/up"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
         environment:
             DB_HOST: '${DB_HOST}'
             DB_PORT: '${DB_PORT}'
