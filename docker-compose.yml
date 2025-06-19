@@ -48,10 +48,10 @@ services:
         networks:
             - traefik
     api:
-        #image: ghcr.io/infcdaal1/rr:latest
-        build:
-            context: .
-            dockerfile: Dockerfile
+        image: ghcr.io/infcdaal1/rr:latest
+#        build:
+#            context: .
+#            dockerfile: Dockerfile
         labels:
             - "traefik.enable=true"  # Activer Traefik pour ce service
             - "traefik.http.routers.api.rule=PathPrefix(`/api`)"  # Règle de routage pour le service API
@@ -62,6 +62,12 @@ services:
             interval: 30s
             timeout: 10s
             retries: 3
+        environment:
+            DB_HOST: '${DB_HOST}'
+            DB_PORT: '${DB_PORT}'
+            DB_DATABASE: '${DB_DATABASE}'
+            DB_USERNAME: '${DB_USERNAME}'
+            DB_PASSWORD: '${DB_PASSWORD}'
         depends_on:
             - mariadb
         networks:
