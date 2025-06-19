@@ -51,7 +51,6 @@ services:
             MYSQL_DATABASE: '${DB_DATABASE}'
             MYSQL_USER: '${DB_USERNAME}'
             MYSQL_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
         volumes:
             - 'mariadb:/var/lib/mysql'
         networks:
@@ -61,6 +60,7 @@ services:
         command: --interval 30 --cleanup  # Vérifier les mises à jour toutes les 30 secondes et nettoyer les images obsolètes
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock  # Accès au socket Docker pour surveiller les conteneurs
+            - ~/.docker/config.json:/config.json
         networks:
             - traefik
 volumes:
