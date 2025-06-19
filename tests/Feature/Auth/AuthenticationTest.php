@@ -28,8 +28,7 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
         
-        // Vérifions simplement si la redirection fonctionne comme prévu
-        $response->assertStatus(302); // Redirection
+        $response->assertStatus(302); 
         $response->assertRedirect('/dashboard');
     }
 

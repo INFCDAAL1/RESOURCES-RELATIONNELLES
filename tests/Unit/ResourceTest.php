@@ -26,7 +26,6 @@ class ResourceTest extends TestCase
         $resource->file_path = 'resources/test-file.pdf';
 
         // On doit remplacer la route par un mock car on ne peut pas créer
-        // une vraie route dans un test unitaire
         app()->bind('url', function () use ($resource) {
             $url = $this->getMockBuilder('Illuminate\Routing\UrlGenerator')
                 ->disableOriginalConstructor()
@@ -46,34 +45,27 @@ class ResourceTest extends TestCase
 
     public function test_get_download_url_returns_null_when_no_file_path()
     {
-        // Arrange
         $resource = new Resource();
         $resource->file_path = null;
 
-        // Act
         $downloadUrl = $resource->getDownloadUrlAttribute();
 
-        // Assert
         $this->assertNull($downloadUrl);
     }
 
     public function test_upload_file_stores_file_and_updates_attributes()
     {
-        // Arrange
         $resource = new Resource();
         $file = UploadedFile::fake()->create('document.pdf', 500);
 
-        // Mock save method to avoid persistence issues
         $resource = $this->getMockBuilder(Resource::class)
             ->onlyMethods(['save'])
             ->getMock();
         $resource->expects($this->once())
             ->method('save');
 
-        // Act
         $path = $resource->uploadFile($file);
 
-        // Assert
         Storage::disk('local')->assertExists($path);
         $this->assertEquals($path, $resource->file_path);
         $this->assertEquals($file->getClientMimeType(), $resource->file_type);
@@ -82,7 +74,6 @@ class ResourceTest extends TestCase
 
     public function test_delete_file_removes_file_and_clears_attributes()
     {
-        // Arrange
         $file = UploadedFile::fake()->create('document.pdf', 500);
         $path = Storage::putFile('resources', $file);
         
@@ -91,7 +82,6 @@ class ResourceTest extends TestCase
         $resource->file_type = 'application/pdf';
         $resource->file_size = 500;
 
-        // Mock save method to avoid persistence issues
         $resource = $this->getMockBuilder(Resource::class)
             ->onlyMethods(['save'])
             ->disableOriginalConstructor()
@@ -100,10 +90,8 @@ class ResourceTest extends TestCase
             ->method('save');
         $resource->file_path = $path;
 
-        // Act
         $result = $resource->deleteFile();
 
-        // Assert
         $this->assertTrue($result);
         Storage::assertMissing($path);
         $this->assertNull($resource->file_path);

@@ -12,11 +12,6 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Nous n'allons pas tester le rendu de la page d'inscription
-     * puisque cela nécessite Vite et le frontend
-     */
-
     public function test_new_users_can_register()
     {
         Event::fake([Registered::class]);

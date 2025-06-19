@@ -71,11 +71,10 @@ class PasswordResetTest extends TestCase
             ]);
             
             // Vérifier que le mot de passe a été changé en rehashant le nouveau mot de passe
-            // et en comparant avec celui stocké en base
             $user->refresh();
             return \Illuminate\Support\Facades\Hash::check('newpassword', $user->password);
         });
         
-        $this->assertTrue(true); // Pour s'assurer que le test passe
+        $this->assertTrue(true);
     }
 }

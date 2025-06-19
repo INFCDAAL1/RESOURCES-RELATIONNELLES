@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Middleware;
 
-use App\Http\Middleware\AuthorizedAdmin; // Changé pour utiliser le bon middleware
+use App\Http\Middleware\AuthorizedAdmin;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ class AuthorizedTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new AuthorizedAdmin(); // Changé pour utiliser AuthorizedAdmin
+        $this->middleware = new AuthorizedAdmin();
     }
 
     public function tearDown(): void
