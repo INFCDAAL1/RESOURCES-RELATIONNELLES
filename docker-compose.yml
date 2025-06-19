@@ -60,8 +60,9 @@ services:
 #            dockerfile: Dockerfile
         labels:
             - "traefik.enable=true"  # Activer Traefik pour ce service
-            - "traefik.http.routers.api.rule=PathPrefix(`/api`)"  # Règle de routage pour le service API
+            - "traefik.http.routers.api.rule=Host(`rr-api.qalpuch.cc`)"  # Règle de routage pour le service API
             - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+            - "traefik.http.routers.api.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
         environment:
             DB_HOST: '${DB_HOST}'
             DB_PORT: '${DB_PORT}'
