@@ -8,7 +8,7 @@ services:
             - "--providers.docker.exposedbydefault=false" # Ne pas exposer les conteneurs par défaut
             - "--entrypoints.web.address=:80"  # Définir le point d'entrée pour le trafic HTTP
             - "--entrypoints.websecure.address=:443"  # Définir le point d'entrée pour le trafic HTTPS
-            #- "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
+            - "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
             - "--entrypoints.websecure.http.tls=true"  # Activer TLS pour le point d'entrée HTTPS
             - "--certificatesresolvers.cloudflare.acme.httpchallenge=true"
             - "--certificatesresolvers.cloudflare.acme.httpchallenge.entrypoint=web"
@@ -36,6 +36,7 @@ services:
             - "traefik.http.routers.front.rule=Host(`rr.qalpuch.cc`)"  # Règle de routage pour le service front
             - "traefik.http.routers.front.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
             - "traefik.http.routers.front.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+            - "traefik.http.services.front.loadbalancer.server.port=80"
         depends_on:
             -   api
         networks:
@@ -48,6 +49,7 @@ services:
             - "traefik.http.routers.frontdev.rule=Host(`rr-dev.qalpuch.cc`)"  # Règle de routage pour le service front
             - "traefik.http.routers.frontdev.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
             - "traefik.http.routers.frontdev.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+            - "traefik.http.services.frontdev.loadbalancer.server.port=80"
         depends_on:
             - api
         networks:
@@ -63,6 +65,7 @@ services:
             - "traefik.http.routers.api.rule=Host(`rr-api.qalpuch.cc`)"  # Règle de routage pour le service API
             - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
             - "traefik.http.routers.api.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+            - "traefik.http.services.api.loadbalancer.server.port=80"
         environment:
             DB_HOST: '${DB_HOST}'
             DB_PORT: '${DB_PORT}'

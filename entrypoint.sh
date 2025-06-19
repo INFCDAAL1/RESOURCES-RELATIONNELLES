@@ -1,30 +1,22 @@
 #!/bin/sh
 
-# Fonction pour afficher un message d'erreur et quitter le script
+# Fonction pour afficher un message d'erreur et quitter
 error_exit() {
-    echo "$1" 1>&2
+    echo "[ERREUR] $1" 1>&2
     exit 1
 }
 
-# Vérifier la connexion à la base de données
-echo "Vérification de la connexion à la base de données..."
+echo "[INFO] Vérification de la connexion à la base de données..."
 until php -r "new PDO('mysql:host=$DB_HOST;dbname=$DB_DATABASE', '$DB_USERNAME', '$DB_PASSWORD');" 2>/dev/null; do
-    echo "Attente de la base de données..."
+    echo "[INFO] Attente de la base de données..."
     sleep 5
 done
 
-# Exécuter les migrations
-echo "Exécution des migrations..."
-if ! php artisan migrate --force; then
-    error_exit "Échec de l'exécution des migrations. Veuillez vérifier la base de données."
-fi
+echo "[INFO] Exécution des migrations..."
+php artisan migrate --force || error_exit "Échec de l'exécution des migrations. Vérifie la base de données."
 
-# Démarrer Nginx et PHP-FPM
-echo "Démarrage de Nginx et PHP-FPM..."
-if ! sh -c nginx; then
-    error_exit "Échec du démarrage de Nginx."
-fi
+echo "[INFO] Démarrage de PHP-FPM..."
+php-fpm || error_exit "Échec du démarrage de PHP-FPM." &
 
-if ! php-fpm; then
-    error_exit "Échec du démarrage de PHP-FPM."
-fi
+echo "[INFO] Démarrage de Nginx..."
+exec nginx -g "daemon off;" || error_exit "Échec du démarrage de Nginx."
