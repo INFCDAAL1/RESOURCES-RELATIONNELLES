@@ -66,17 +66,21 @@ services:
             - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
             - "traefik.http.routers.api.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
             - "traefik.http.services.api.loadbalancer.server.port=80"
+            - "traefik.docker.network=traefik"  # Spécifier le réseau Traefik pour ce service
         environment:
             DB_HOST: '${DB_HOST}'
             DB_PORT: '${DB_PORT}'
             DB_DATABASE: '${DB_DATABASE}'
             DB_USERNAME: '${DB_USERNAME}'
             DB_PASSWORD: '${DB_PASSWORD}'
+        env_file:
+            -   .env
         depends_on:
             - mariadb
         networks:
-            - db
             - traefik
+            - db
+
     mariadb:
         image: 'mariadb:11'
         restart: unless-stopped
@@ -105,5 +109,6 @@ volumes:
 
 networks:
     db:
+        name: db  # Nom du réseau de base de données pour la communication entre les services
     traefik:
-        name: web
+        name: traefik  # Nom du réseau Traefik pour la communication entre les services
