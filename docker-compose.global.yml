@@ -1,0 +1,46 @@
+services:
+  traefik:
+    image: traefik:v3.4.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--log.level=DEBUG"
+      - "--providers.docker=true"  # Activer le provider Docker
+      - "--providers.docker.exposedbydefault=false" # Ne pas exposer les conteneurs par défaut
+      - "--entrypoints.web.address=:80"  # Définir le point d'entrée pour le trafic HTTP
+      - "--entrypoints.websecure.address=:443"  # Définir le point d'entrée pour le trafic HTTPS
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
+      - "--entrypoints.websecure.http.tls=true"  # Activer TLS pour le point d'entrée HTTPS
+      - "--certificatesresolvers.cloudflare.acme.httpchallenge=true"
+      - "--certificatesresolvers.cloudflare.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.email=${CF_API_EMAIL}"
+      - "--certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json"
+    environment:
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    ports:
+      - "80:80"  # Exposer le port 80 pour le trafic HTTP
+      - "443:443"  # Exposer le port 443 pour le trafic HTTPS
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "../letsencrypt:/letsencrypt"
+    networks:
+      - traefik  # Utiliser le réseau Traefik pour la communication entre les services
+
+  watchtower:
+    image: containrrr/watchtower:1.7.1
+    container_name: watchtower
+    restart: unless-stopped
+    command: --interval 30 --cleanup  # Vérifier les mises à jour toutes les 30 secondes et nettoyer les images obsolètes
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Accès au socket Docker pour surveiller les conteneurs
+      - "~/.docker/config.json:/config.json"
+    networks:
+      - traefik # Utiliser le réseau Traefik pour la communication entre les services
+networks:
+  traefik:
+    name: traefik
+    driver: bridge  # Utiliser le driver bridge pour le réseau Traefik
+    attachable: true  # Permettre aux conteneurs de se connecter à ce réseau

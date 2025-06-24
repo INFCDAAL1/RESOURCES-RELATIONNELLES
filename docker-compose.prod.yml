@@ -1,0 +1,79 @@
+services:
+  front:
+    image: ghcr.io/infcdaal1/rr-vue:latest
+    container_name: front-prod
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"  # Activer Traefik pour ce service
+      - "traefik.http.routers.front.rule=Host(`rr.qalpuch.cc`)"  # Règle de routage pour le service front
+      - "traefik.http.routers.front.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+      - "traefik.http.routers.front.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+      - "traefik.http.services.front.loadbalancer.server.port=80"
+    depends_on:
+      api:
+        required: true
+        condition: service_healthy
+    networks:
+      - traefik  # Utiliser le réseau Traefik pour la communication entre les services
+
+  api:
+    image: ghcr.io/infcdaal1/rr-api:latest
+    container_name: api-prod
+    restart: unless-stopped
+    labels:
+    - "traefik.enable=true"  # Activer Traefik pour ce service
+    - "traefik.http.routers.api.rule=Host(`rr-api.qalpuch.cc`)"  # Règle de routage pour le service API
+    - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+    - "traefik.http.routers.api.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+    - "traefik.http.services.api.loadbalancer.server.port=80"
+    - "traefik.docker.network=traefik"  # Spécifier le réseau Traefik pour ce service
+    environment:
+      DB_HOST: db
+      DB_PORT: '${DB_PORT}'
+      DB_DATABASE: '${DB_DATABASE}'
+      DB_USERNAME: '${DB_USERNAME}'
+      DB_PASSWORD: '${DB_PASSWORD}'
+    env_file:
+      - .env.prod
+    depends_on:
+      db:
+        required: true
+        condition: service_healthy
+    networks:
+      - traefik  # Utiliser le réseau Traefik pour la communication entre les services
+      - db # Utiliser le réseau de la base de données pour la communication
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/v1/version || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  db:
+    image: 'mariadb:11'
+    container_name: db-prod
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_HOST: '0.0.0.0'
+      MYSQL_PORT: '${DB_PORT}'
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+    volumes:
+      - 'db_prod:/var/lib/mysql'
+    networks:
+      - db
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -p${DB_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+volumes:
+  db_prod:
+    driver: local
+
+networks:
+  db:
+    name: db-prod
+  traefik:
+    external: true

@@ -1,87 +1,46 @@
 services:
-    traefik:
-        image: traefik:v3.4.1
-        restart: unless-stopped
-        command:
-            - "--log.level=DEBUG"
-            - "--providers.docker=true"  # Activer le provider Docker
-            - "--providers.docker.exposedbydefault=false" # Ne pas exposer les conteneurs par défaut
-            - "--entrypoints.web.address=:80"  # Définir le point d'entrée pour le trafic HTTP
-            - "--entrypoints.websecure.address=:443"  # Définir le point d'entrée pour le trafic HTTPS
-            - "--entrypoints.web.http.redirections.entryPoint.to=websecure"  # Rediriger HTTP vers HTTPS
-            - "--entrypoints.websecure.http.tls=true"  # Activer TLS pour le point d'entrée HTTPS
-            - "--certificatesresolvers.cloudflare.acme.httpchallenge=true"
-            - "--certificatesresolvers.cloudflare.acme.httpchallenge.entrypoint=web"
-            - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
-            - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
-            - "--certificatesresolvers.cloudflare.acme.email=${CF_API_EMAIL}"
-            - "--certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json"
-        environment:
-            - CF_API_EMAIL=${CF_API_EMAIL}
-            - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
-        ports:
-            - "80:80"  # Exposer le port 80 pour le trafic HTTP
-            - "443:443"  # Exposer le port 443 pour le trafic HTTPS
-        volumes:
-            - "/var/run/docker.sock:/var/run/docker.sock"
-            - "./letsencrypt:/letsencrypt"
-        networks:
-            - traefik  # Utiliser le réseau Traefik pour la communication entre les services
     front:
-        image: ghcr.io/infcdaal1/rr-vue:latest
-        restart: unless-stopped
-        #image: rr-vue:dev
-        labels:
-            - "traefik.enable=true"  # Activer Traefik pour ce service
-            - "traefik.http.routers.front.rule=Host(`rr.qalpuch.cc`)"  # Règle de routage pour le service front
-            - "traefik.http.routers.front.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-            - "traefik.http.routers.front.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
-            - "traefik.http.services.front.loadbalancer.server.port=80"
-        depends_on:
-            -   api
-        networks:
-            - traefik
-    front-dev:
         image: ghcr.io/infcdaal1/rr-vue:dev
-        #image: rr-vue:dev
-        labels:
-            - "traefik.enable=true"  # Activer Traefik pour ce service
-            - "traefik.http.routers.frontdev.rule=Host(`rr-dev.qalpuch.cc`)"  # Règle de routage pour le service front
-            - "traefik.http.routers.frontdev.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-            - "traefik.http.routers.frontdev.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
-            - "traefik.http.services.frontdev.loadbalancer.server.port=80"
-        depends_on:
-            - api
-        networks:
-            - traefik
-    api:
-        image: ghcr.io/infcdaal1/rr:latest
+        container_name: front-local
         restart: unless-stopped
-#        build:
-#            context: .
-#            dockerfile: Dockerfile
-        labels:
-            - "traefik.enable=true"  # Activer Traefik pour ce service
-            - "traefik.http.routers.api.rule=Host(`rr-api.qalpuch.cc`)"  # Règle de routage pour le service API
-            - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-            - "traefik.http.routers.api.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
-            - "traefik.http.services.api.loadbalancer.server.port=80"
-            - "traefik.docker.network=traefik"  # Spécifier le réseau Traefik pour ce service
+        ports:
+            - "3000:80"
+        depends_on:
+            api:
+                required: true
+                condition: service_healthy
+    api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: api-local
+        restart: unless-stopped
+        ports:
+            - "8080:80"
         environment:
-            DB_HOST: '${DB_HOST}'
+            DB_HOST: db
             DB_PORT: '${DB_PORT}'
             DB_DATABASE: '${DB_DATABASE}'
             DB_USERNAME: '${DB_USERNAME}'
             DB_PASSWORD: '${DB_PASSWORD}'
         env_file:
-            -   .env
+            - .env
+        volumes:
+            - .:/app
+        working_dir: /app
         depends_on:
-            - mariadb
+            db:
+                required: true
+                condition: service_healthy
         networks:
-            - traefik
             - db
+        healthcheck:
+            test: [ "CMD-SHELL", "curl -f http://localhost:8080/healty || exit 1" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
-    mariadb:
+    db:
         image: 'mariadb:11'
         restart: unless-stopped
         environment:
@@ -94,15 +53,6 @@ services:
             - 'mariadb:/var/lib/mysql'
         networks:
             - db
-    watchtower:
-        image: containrrr/watchtower:latest
-        restart: unless-stopped
-        command: --interval 30 --cleanup  # Vérifier les mises à jour toutes les 30 secondes et nettoyer les images obsolètes
-        volumes:
-            - "/var/run/docker.sock:/var/run/docker.sock"  # Accès au socket Docker pour surveiller les conteneurs
-            - "~/.docker/config.json:/config.json"
-        networks:
-            - traefik
 volumes:
     mariadb:
         driver: local
