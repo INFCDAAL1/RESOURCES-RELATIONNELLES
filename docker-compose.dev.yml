@@ -60,7 +60,7 @@ services:
       MYSQL_USER: '${DB_USERNAME}'
       MYSQL_PASSWORD: '${DB_PASSWORD}'
     volumes:
-      - 'db_prod:/var/lib/mysql'
+      - 'db_dev:/var/lib/mysql'
     networks:
       - db
     healthcheck:
@@ -71,7 +71,7 @@ services:
       timeout: 5s
       retries: 3
 volumes:
-  db_prod:
+  db_dev:
     driver: local
 
 networks:
