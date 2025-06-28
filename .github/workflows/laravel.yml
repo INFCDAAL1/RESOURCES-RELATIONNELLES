@@ -49,11 +49,11 @@ jobs:
         extensions: pdo_mysql,mbstring,xml,bcmath,intl,zip,gd,curl
         coverage: xdebug
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: 'npm'
+#    - name: Setup Node.js
+#      uses: actions/setup-node@v4
+#      with:
+#        node-version: '22'
+#        cache: 'npm'
 
     - name: Copy .env
       run: cp .env.testing .env
@@ -67,11 +67,11 @@ jobs:
     - name: Install PHP Dependencies
       run: composer install --prefer-dist --optimize-autoloader
 
-    - name: Install Node Dependencies
-      run: npm ci
-
-    - name: Build frontend assets
-      run: npm run build
+#    - name: Install Node Dependencies
+#      run: npm ci
+#
+#    - name: Build frontend assets
+#      run: npm run build
 
     - name: Generate App Key
       run: php artisan key:generate
