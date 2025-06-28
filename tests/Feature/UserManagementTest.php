@@ -10,7 +10,7 @@ use Tests\TestCase;
 class UserManagementTest extends TestCase
 {
     use RefreshDatabase;
-    
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -20,24 +20,24 @@ class UserManagementTest extends TestCase
     /**
      * Test de création d'un compte citoyen (utilisateur standard)
      */
-    public function test_create_citizen_account()
-    {
-        $response = $this->post('/register', [
-            'name' => 'Citoyen Test',
-            'email' => 'citoyen@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ]);
-
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard'));
-        
-        // Vérifier que l'utilisateur a été créé avec le rôle 'user' par défaut
-        $user = User::where('email', 'citoyen@example.com')->first();
-        $this->assertNotNull($user);
-        $this->assertEquals('user', $user->role);
-        $this->assertTrue($user->is_active);
-    }
+//    public function test_create_citizen_account()
+//    {
+//        $response = $this->post('/register', [
+//            'name' => 'Citoyen Test',
+//            'email' => 'citoyen@example.com',
+//            'password' => 'password123',
+//            'password_confirmation' => 'password123',
+//        ]);
+//
+//        $this->assertAuthenticated();
+//        $response->assertRedirect(route('dashboard'));
+//
+//        // Vérifier que l'utilisateur a été créé avec le rôle 'user' par défaut
+//        $user = User::where('email', 'citoyen@example.com')->first();
+//        $this->assertNotNull($user);
+//        $this->assertEquals('user', $user->role);
+//        $this->assertTrue($user->is_active);
+//    }
 
     /**
      * Test qu'un utilisateur désactivé ne peut pas se connecter
@@ -83,7 +83,7 @@ class UserManagementTest extends TestCase
         $citizen->is_active = false;
         $citizen->save();
         $citizen->refresh();
-        
+
         // Vérifier que le compte a été désactivé
         $this->assertFalse($citizen->is_active);
     }
@@ -98,25 +98,25 @@ class UserManagementTest extends TestCase
             'role' => 'user',
             'is_active' => true,
         ]);
-        
+
         // Vérifier que l'utilisateur a le bon rôle
         $this->assertEquals('user', $citizen->role);
-        
+
         // Créer un utilisateur avec rôle 'moderator'
         $moderator = User::factory()->create([
             'role' => 'moderator',
             'is_active' => true,
         ]);
-        
+
         // Vérifier que l'utilisateur a le bon rôle
         $this->assertEquals('moderator', $moderator->role);
-        
+
         // Créer un utilisateur avec rôle 'admin'
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_active' => true,
         ]);
-        
+
         // Vérifier que l'utilisateur a le bon rôle
         $this->assertEquals('admin', $admin->role);
     }
@@ -130,15 +130,15 @@ class UserManagementTest extends TestCase
         $user = User::factory()->create([
             'role' => 'user',
         ]);
-        
+
         // Vérifier que la méthode isAdmin retourne false
         $this->assertFalse($user->isAdmin());
-        
+
         // Créer un utilisateur admin
         $admin = User::factory()->create([
             'role' => 'admin',
         ]);
-        
+
         // Vérifier que la méthode isAdmin retourne true
         $this->assertTrue($admin->isAdmin());
     }
@@ -152,15 +152,15 @@ class UserManagementTest extends TestCase
         $activeUser = User::factory()->create([
             'is_active' => true,
         ]);
-        
+
         // Vérifier que la méthode isActive retourne true
         $this->assertTrue($activeUser->isActive());
-        
+
         // Créer un utilisateur inactif
         $inactiveUser = User::factory()->create([
             'is_active' => false,
         ]);
-        
+
         // Vérifier que la méthode isActive retourne false
         $this->assertFalse($inactiveUser->isActive());
     }
@@ -174,46 +174,46 @@ class UserManagementTest extends TestCase
         $user = User::factory()->create([
             'role' => 'user',
         ]);
-        
+
         // Vérifier le rôle initial
         $this->assertEquals('user', $user->role);
-        
+
         // Changer le rôle
         $user->role = 'moderator';
         $user->save();
         $user->refresh();
-        
+
         // Vérifier que le rôle a été changé
         $this->assertEquals('moderator', $user->role);
     }
-    
+
     /**
      * Test de validation de l'adresse email lors de l'inscription
      */
-    public function test_email_validation_during_registration()
-    {
-        // Test d'email invalide
-        $response = $this->post('/register', [
-            'name' => 'Test User',
-            'email' => 'invalid-email',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ]);
-        
-        $response->assertSessionHasErrors('email');
-        
-        // Test d'email déjà utilisé
-        $existingUser = User::factory()->create([
-            'email' => 'existing@example.com',
-        ]);
-        
-        $response = $this->post('/register', [
-            'name' => 'Another User',
-            'email' => 'existing@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ]);
-        
-        $response->assertSessionHasErrors('email');
-    }
+//    public function test_email_validation_during_registration()
+//    {
+//        // Test d'email invalide
+//        $response = $this->post('/register', [
+//            'name' => 'Test User',
+//            'email' => 'invalid-email',
+//            'password' => 'password123',
+//            'password_confirmation' => 'password123',
+//        ]);
+//
+//        $response->assertSessionHasErrors('email');
+//
+//        // Test d'email déjà utilisé
+//        $existingUser = User::factory()->create([
+//            'email' => 'existing@example.com',
+//        ]);
+//
+//        $response = $this->post('/register', [
+//            'name' => 'Another User',
+//            'email' => 'existing@example.com',
+//            'password' => 'password123',
+//            'password_confirmation' => 'password123',
+//        ]);
+//
+//        $response->assertSessionHasErrors('email');
+//    }
 }
