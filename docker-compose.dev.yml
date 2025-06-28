@@ -50,7 +50,7 @@ services:
 
   db:
     image: 'mariadb:11'
-    container_name: db-prod
+    container_name: db-dev
     restart: unless-stopped
     environment:
       MYSQL_ROOT_HOST: '0.0.0.0'
@@ -76,6 +76,6 @@ volumes:
 
 networks:
   db:
-    name: db-prod
+    name: db-dev
   traefik:
     external: true
