@@ -17,7 +17,7 @@ services:
       - traefik  # Utiliser le réseau Traefik pour la communication entre les services
 
   api:
-    image: ghcr.io/infcdaal1/rr-api:dev
+    image: ghcr.io/infcdaal1/rr:dev
     container_name: api-dev
     restart: unless-stopped
     labels:
