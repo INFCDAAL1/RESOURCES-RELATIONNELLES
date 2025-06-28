@@ -16,6 +16,9 @@ echo "[INFO] Exécution des migrations..."
 php artisan migrate --force || error_exit "Échec de l'exécution des migrations. Vérifiez la base de données."
 
 if [ "$APP_DEBUG" = "true" ]; then
+    echo "[INFO] Mode développement activé."
+    echo "[INFO] Installation des dépendances de développement..."
+    composer install --prefer-dist --optimize-autoloader || error_exit "Échec de l'installation des dépendances de développement."
     echo "[INFO] Exécution des seeders..."
     php artisan db:seed --force || error_exit "Échec de l'exécution des seeders. Vérifiez la base de données."
     echo "[INFO] Nettoyage du cache de configuration..."
