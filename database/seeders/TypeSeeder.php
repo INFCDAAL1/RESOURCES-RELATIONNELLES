@@ -2,17 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\Type;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class TypeSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('types')->insert([
-            ['name' => 'pdf'],
-            ['name' => 'csv'],
-            ['name' => 'doc'],
-        ]);
+        Type::firstOrCreate(['name' => 'pdf']);
+        Type::firstOrCreate(['name' => 'csv']);
+        Type::firstOrCreate(['name' => 'doc']);
     }
 }

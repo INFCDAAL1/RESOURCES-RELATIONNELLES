@@ -2,9 +2,6 @@ services:
     front:
         image: ghcr.io/infcdaal1/rr-vue:dev
         container_name: front-local
-        restart: unless-stopped
-        ports:
-            - "3000:80"
         depends_on:
             api:
                 required: true
@@ -14,7 +11,6 @@ services:
             context: .
             dockerfile: Dockerfile
         container_name: api-local
-        restart: unless-stopped
         ports:
             - "8080:80"
         environment:
@@ -26,23 +22,22 @@ services:
         env_file:
             - .env
         volumes:
-            - .:/app
-        working_dir: /app
+            - .:/var/www/html
+        working_dir: /var/www/html
         depends_on:
             db:
                 required: true
                 condition: service_healthy
-        networks:
-            - db
         healthcheck:
-            test: [ "CMD-SHELL", "curl -f http://localhost:8080/healty || exit 1" ]
+            test: [ "CMD-SHELL", "curl -f http://localhost:80/up || exit 1" ]
             interval: 10s
             timeout: 5s
-            retries: 5
+            retries: 15
 
     db:
         image: 'mariadb:11'
-        restart: unless-stopped
+        ports:
+            -   "3306:3306"
         environment:
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             MYSQL_ROOT_HOST: '0.0.0.0'
@@ -51,14 +46,13 @@ services:
             MYSQL_PASSWORD: '${DB_PASSWORD}'
         volumes:
             - 'mariadb:/var/lib/mysql'
-        networks:
-            - db
+        healthcheck:
+            test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
+            start_period: 1m
+            start_interval: 10s
+            interval: 1m
+            timeout: 5s
+            retries: 3
 volumes:
     mariadb:
         driver: local
-
-networks:
-    db:
-        name: db  # Nom du réseau de base de données pour la communication entre les services
-    traefik:
-        name: traefik  # Nom du réseau Traefik pour la communication entre les services

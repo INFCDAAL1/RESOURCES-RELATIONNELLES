@@ -2,17 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\Origin;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class OriginSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('origins')->insert([
-            ['libelle' => 'Interne'],
-            ['libelle' => 'Externe'],
-            ['libelle' => 'Partenaire'],
-        ]);
+        Origin::firstOrCreate(['libelle' => 'Interne']);
+        Origin::firstOrCreate(['libelle' => 'Externe']);
+        Origin::firstOrCreate(['libelle' => 'Partenaire']);
     }
 }

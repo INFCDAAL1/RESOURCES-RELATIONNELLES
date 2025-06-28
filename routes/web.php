@@ -1,38 +1,6 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AdminController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-require __DIR__.'/auth.php';
-
-Route::middleware(['authorized:admin'])->group(function () {
-    Route::get('/admin/profiles/{id}', [AdminController::class, 'showProfile'])->name('admin.showprofile');
-    Route::get('/admin/profiles/{id}/edit', [AdminController::class, 'editProfile'])->name('admin.editprofile');
-    Route::patch('/admin/profiles/{id}', [AdminController::class, 'updateProfile'])->name('admin.updateprofile');
-    Route::delete('/admin/profiles/{id}', [AdminController::class, 'deleteProfile'])->name('admin.deleteprofile');
-    Route::get('/admin/profiles/create', [AdminController::class, 'createProfile'])->name('admin.createprofile');
-    Route::post('/admin/profiles', [AdminController::class, 'storeProfile'])->name('admin.storeprofile');
-    Route::get('/admin/profiles', [AdminController::class, 'listProfiles'])->name('admin.listprofiles');
-
-});
+// All web routes are now handled by the frontend.
+// This file is intentionally left empty.

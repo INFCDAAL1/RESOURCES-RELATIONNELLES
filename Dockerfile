@@ -12,8 +12,6 @@ RUN apk add --no-cache \
     freetype-dev \
     libjpeg-turbo-dev \
     libpng-dev \
-    nodejs \
-    npm \
     && docker-php-ext-configure zip \
     && docker-php-ext-install zip pdo pdo_mysql \
     && docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ \
@@ -27,17 +25,6 @@ COPY --from=composer:2.8.9 /usr/bin/composer /usr/bin/composer
 COPY . .
 
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
-
-RUN php artisan optimize && \
-    php artisan config:cache && \
-    php artisan event:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
-
-
-RUN npm ci
-
-RUN npm run build
 
 FROM php:8.4.8-fpm-alpine3.22
 
