@@ -10,6 +10,9 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
+            no_cache: true
+            pull: true
+
         container_name: api-local
         ports:
             - "8080:80"

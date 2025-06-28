@@ -22,7 +22,16 @@ RUN apk add --no-cache \
 COPY --from=composer:2.8.9 /usr/bin/composer /usr/bin/composer
 
 # Install dependencies
-COPY . .
+COPY composer.json composer.lock ./
+COPY artisan ./artisan
+COPY app ./app
+COPY config ./config
+COPY database ./database
+COPY public ./public
+COPY routes ./routes
+COPY storage ./storage
+COPY bootstrap ./bootstrap
+
 
 RUN composer install --no-dev --prefer-dist --optimize-autoloader
 
@@ -61,13 +70,22 @@ RUN apk add --no-cache \
 
 
 # Copy the build output to the Nginx HTML directory
-COPY --from=build /var/www/html /var/www/html
+COPY --from=build /var/www/html/composer.json /var/www/html/composer.lock ./
+COPY --from=build /var/www/html/artisan ./artisan
+COPY --from=build /var/www/html/app ./app
+COPY --from=build /var/www/html/config ./config
+COPY --from=build /var/www/html/database ./database
+COPY --from=build /var/www/html/public ./public
+COPY --from=build /var/www/html/routes ./routes
+COPY --from=build /var/www/html/storage ./storage
+COPY --from=build /var/www/html/bootstrap ./bootstrap
+COPY --from=build /var/www/html/vendor /var/www/html/vendor
 
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/http.d/default.conf
 
 # Donner les permissions appropriées
-RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh

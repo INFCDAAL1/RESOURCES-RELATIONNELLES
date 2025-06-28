@@ -105,3 +105,8 @@ Homestead.json
 .github/
 tests/
 .env*
+docker-compose*
+*.log
+*.sqlite
+coverage
+phpunit.xml
