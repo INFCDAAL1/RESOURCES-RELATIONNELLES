@@ -44,6 +44,12 @@ if [ "$APP_DEBUG" = "true" ]; then
 else
     echo "[INFO] Lancement de l'application en mode production..."
 
+    echo "[INFO] Exécution des seeders de production..."
+    php artisan db:seed --class=CategorySeeder --force || error_exit "Échec de l'exécution des seeders de catégories."
+    php artisan db:seed --class=VisibilitySeeder --force || error_exit "Échec de l'exécution des seeders de visibilité."
+    php artisan db:seed --class=OriginSeeder --force || error_exit "Échec de l'exécution des seeders d'origine."
+    php artisan db:seed --class=TypeSeeder --force || error_exit "Échec de l'exécution des seeders de type."
+
     echo "[INFO] Démarrage de PHP-FPM..."
     php-fpm || error_exit "Échec du démarrage de PHP-FPM." &
 
