@@ -1,7 +1,7 @@
 services:
-  front:
+  rr-front-dev:
     image: ghcr.io/infcdaal1/rr-vue:dev
-    container_name: front-dev
+    container_name: rr-front-dev
     restart: unless-stopped
     labels:
       - "traefik.enable=true"  # Activer Traefik pour ce service
@@ -16,9 +16,9 @@ services:
     networks:
       - traefik  # Utiliser le réseau Traefik pour la communication entre les services
 
-  api:
+  rr-api-dev:
     image: ghcr.io/infcdaal1/rr:dev
-    container_name: api-dev
+    container_name: rr-api-dev
     restart: unless-stopped
     labels:
       - "traefik.enable=true"  # Activer Traefik pour ce service
@@ -28,7 +28,7 @@ services:
       - "traefik.http.services.api.loadbalancer.server.port=80"
       - "traefik.docker.network=traefik"  # Spécifier le réseau Traefik pour ce service
     environment:
-      DB_HOST: db
+      DB_HOST: rr-db-dev
       DB_PORT: '${DB_PORT}'
       DB_DATABASE: '${DB_DATABASE}'
       DB_USERNAME: '${DB_USERNAME}'
@@ -48,9 +48,9 @@ services:
       timeout: 5s
       retries: 15
 
-  db:
+  rr-db-dev:
     image: 'mariadb:11'
-    container_name: db-dev
+    container_name: rr-db-dev
     restart: unless-stopped
     environment:
       MYSQL_ROOT_HOST: '0.0.0.0'
@@ -60,9 +60,9 @@ services:
       MYSQL_USER: '${DB_USERNAME}'
       MYSQL_PASSWORD: '${DB_PASSWORD}'
     volumes:
-      - 'db_dev:/var/lib/mysql'
+      - 'rr_db_dev:/var/lib/mysql'
     networks:
-      - db
+      - rr-db-dev
     healthcheck:
       test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
       start_period: 1m
@@ -71,11 +71,11 @@ services:
       timeout: 5s
       retries: 3
 volumes:
-  db_dev:
+  rr_db_dev:
     driver: local
 
 networks:
-  db:
-    name: db-dev
+  rr-db-dev:
+    name: rr-db-dev
   traefik:
     external: true

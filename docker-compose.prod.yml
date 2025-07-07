@@ -1,5 +1,5 @@
 services:
-  front:
+  rr-front-prod:
     image: ghcr.io/infcdaal1/rr-vue:latest
     container_name: front-prod
     restart: unless-stopped
@@ -16,9 +16,9 @@ services:
     networks:
       - traefik  # Utiliser le réseau Traefik pour la communication entre les services
 
-  api:
+  rr-api-prod:
     image: ghcr.io/infcdaal1/rr:latest
-    container_name: api-prod
+    container_name: rr-api-prod
     restart: unless-stopped
     labels:
     - "traefik.enable=true"  # Activer Traefik pour ce service
@@ -28,7 +28,7 @@ services:
     - "traefik.http.services.api.loadbalancer.server.port=80"
     - "traefik.docker.network=traefik"  # Spécifier le réseau Traefik pour ce service
     environment:
-      DB_HOST: db
+      DB_HOST: rr-db-prod
       DB_PORT: '${DB_PORT}'
       DB_DATABASE: '${DB_DATABASE}'
       DB_USERNAME: '${DB_USERNAME}'
@@ -41,16 +41,16 @@ services:
         condition: service_healthy
     networks:
       - traefik  # Utiliser le réseau Traefik pour la communication entre les services
-      - db # Utiliser le réseau de la base de données pour la communication
+      - rr-db-prod # Utiliser le réseau de la base de données pour la communication
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:80/up || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 15
 
-  db:
+  rr-db-prod:
     image: 'mariadb:11'
-    container_name: db-prod
+    container_name: rr-db-prod
     restart: unless-stopped
     environment:
       MYSQL_ROOT_HOST: '0.0.0.0'
@@ -60,9 +60,9 @@ services:
       MYSQL_USER: '${DB_USERNAME}'
       MYSQL_PASSWORD: '${DB_PASSWORD}'
     volumes:
-      - 'db_prod:/var/lib/mysql'
+      - 'rr_db_prod:/var/lib/mysql'
     networks:
-      - db
+      - rr-db-prod
     healthcheck:
       test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
       start_period: 1m
@@ -71,11 +71,11 @@ services:
       timeout: 5s
       retries: 3
 volumes:
-  db_prod:
+  rr_db_prod:
     driver: local
 
 networks:
-  db:
-    name: db-prod
+  rr-db-prod:
+    name: rr-db-prod
   traefik:
     external: true
