@@ -1,14 +1,14 @@
 services:
   rr-front-prod:
     image: ghcr.io/infcdaal1/rr-vue:latest
-    container_name: front-prod
+    container_name: rr-front-prod
     restart: unless-stopped
     labels:
       - "traefik.enable=true"  # Activer Traefik pour ce service
-      - "traefik.http.routers.front.rule=Host(`rr.qalpuch.cc`)"  # Règle de routage pour le service front
-      - "traefik.http.routers.front.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-      - "traefik.http.routers.front.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
-      - "traefik.http.services.front.loadbalancer.server.port=80"
+      - "traefik.http.routers.rr-front-prod.rule=Host(`rr.qalpuch.cc`)"  # Règle de routage pour le service front
+      - "traefik.http.routers.rr-front-prod.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+      - "traefik.http.routers.rr-front-prod.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+      - "traefik.http.services.rr-front-prod.loadbalancer.server.port=80"
     depends_on:
       rr-api-prod:
         required: true
@@ -22,10 +22,10 @@ services:
     restart: unless-stopped
     labels:
     - "traefik.enable=true"  # Activer Traefik pour ce service
-    - "traefik.http.routers.api.rule=Host(`rr-api.qalpuch.cc`)"  # Règle de routage pour le service API
-    - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-    - "traefik.http.routers.api.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
-    - "traefik.http.services.api.loadbalancer.server.port=80"
+    - "traefik.http.routers.rr-api-prod.rule=Host(`rr-api.qalpuch.cc`)"  # Règle de routage pour le service API
+    - "traefik.http.routers.rr-api-prod.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+    - "traefik.http.routers.rr-api-prod.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+    - "traefik.http.services.rr-api-prod.loadbalancer.server.port=80"
     - "traefik.docker.network=traefik"  # Spécifier le réseau Traefik pour ce service
     environment:
       DB_HOST: rr-db-prod

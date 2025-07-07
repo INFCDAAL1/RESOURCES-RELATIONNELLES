@@ -5,10 +5,10 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"  # Activer Traefik pour ce service
-      - "traefik.http.routers.front.rule=Host(`rr-dev.qalpuch.cc`)"  # Règle de routage pour le service front
-      - "traefik.http.routers.front.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-      - "traefik.http.routers.front.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
-      - "traefik.http.services.front.loadbalancer.server.port=80"
+      - "traefik.http.routers.rr-front-dev.rule=Host(`rr-dev.qalpuch.cc`)"  # Règle de routage pour le service front
+      - "traefik.http.routers.rr-front-dev.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+      - "traefik.http.routers.rr-front-dev.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+      - "traefik.http.services.rr-front-dev.loadbalancer.server.port=80"
     depends_on:
       rr-api-dev:
         required: true
@@ -22,10 +22,10 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"  # Activer Traefik pour ce service
-      - "traefik.http.routers.api.rule=Host(`rr-api-dev.qalpuch.cc`)"  # Règle de routage pour le service API
-      - "traefik.http.routers.api.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
-      - "traefik.http.routers.api.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
-      - "traefik.http.services.api.loadbalancer.server.port=80"
+      - "traefik.http.routers.rr-api-dev.rule=Host(`rr-api-dev.qalpuch.cc`)"  # Règle de routage pour le service API
+      - "traefik.http.routers.rr-api-dev.entrypoints=websecure"  # Utiliser le point d'entrée HTTPS
+      - "traefik.http.routers.rr-api-dev.tls.certresolver=cloudflare"  # Utiliser le résolveur de certificats Cloudflare
+      - "traefik.http.services.rr-api-dev.loadbalancer.server.port=80"
       - "traefik.docker.network=traefik"  # Spécifier le réseau Traefik pour ce service
     environment:
       DB_HOST: rr-db-dev
