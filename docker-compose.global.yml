@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     command:
       - "--log.level=DEBUG"
-      - "--providers.docker=true"  # Activer le provider Docker
+      #- "--providers.docker=true"  # Activer le provider Docker
       - "--providers.docker.exposedbydefault=false" # Ne pas exposer les conteneurs par défaut
       - "--entrypoints.web.address=:80"  # Définir le point d'entrée pour le trafic HTTP
       - "--entrypoints.websecure.address=:443"  # Définir le point d'entrée pour le trafic HTTPS

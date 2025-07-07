@@ -1,23 +1,23 @@
 services:
-    front:
+    rr-front-local:
         image: ghcr.io/infcdaal1/rr-vue:dev
-        container_name: front-local
+        container_name: rr-front-local
         depends_on:
-            api:
+            rr-api-local:
                 required: true
                 condition: service_healthy
-    api:
+    rr-api-local:
         build:
             context: .
             dockerfile: Dockerfile
             no_cache: true
             pull: true
 
-        container_name: api-local
+        container_name: rr-api-local
         ports:
             - "8080:80"
         environment:
-            DB_HOST: db
+            DB_HOST: rr-db-local
             DB_PORT: '${DB_PORT}'
             DB_DATABASE: '${DB_DATABASE}'
             DB_USERNAME: '${DB_USERNAME}'
@@ -28,7 +28,7 @@ services:
             - .:/var/www/html
         working_dir: /var/www/html
         depends_on:
-            db:
+            rr-db-local:
                 required: true
                 condition: service_healthy
         healthcheck:
@@ -37,8 +37,9 @@ services:
             timeout: 5s
             retries: 15
 
-    db:
+    rr-db-local:
         image: 'mariadb:11'
+        container_name: rr-db-local
         ports:
             -   "3306:3306"
         environment:
@@ -48,7 +49,7 @@ services:
             MYSQL_USER: '${DB_USERNAME}'
             MYSQL_PASSWORD: '${DB_PASSWORD}'
         volumes:
-            - 'mariadb:/var/lib/mysql'
+            - 'rr_db_local:/var/lib/mysql'
         healthcheck:
             test: [ "CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized" ]
             start_period: 1m
@@ -57,5 +58,5 @@ services:
             timeout: 5s
             retries: 3
 volumes:
-    mariadb:
+    rr_db_local:
         driver: local
