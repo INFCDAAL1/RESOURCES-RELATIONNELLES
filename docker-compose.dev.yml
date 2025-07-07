@@ -41,7 +41,7 @@ services:
         condition: service_healthy
     networks:
       - traefik  # Utiliser le réseau Traefik pour la communication entre les services
-      - db # Utiliser le réseau de la base de données pour la communication
+      - rr-db-dev # Utiliser le réseau de la base de données pour la communication
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:80/up || exit 1" ]
       interval: 10s

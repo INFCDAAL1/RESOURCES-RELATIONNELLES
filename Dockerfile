@@ -85,7 +85,7 @@ COPY --from=build /var/www/html/vendor /var/www/html/vendor
 COPY nginx.conf /etc/nginx/http.d/default.conf
 
 # Configure PHP-FPM
-RUN echo "upload_max_filesize=100M\npost_max_size=100M" > /usr/local/etc/php/conf.d/uploads.ini
+RUN printf "upload_max_filesize=100M\npost_max_size=100M\n" > /usr/local/etc/php/conf.d/uploads.ini
 
 # Donner les permissions appropriées
 RUN chown -R www-data:www-data storage bootstrap/cache
