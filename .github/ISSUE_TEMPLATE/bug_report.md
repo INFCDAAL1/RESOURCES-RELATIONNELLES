@@ -1,6 +1,6 @@
 ---
-name: Rapport de bug
-about: Créer un rapport pour nous aider à améliorer le projet
+name: "🐞 Rapport de bug"
+about: "Signaler un problème ou un comportement inattendu."
 title: "[BUG] - "
 labels: bug
 assignees: ''

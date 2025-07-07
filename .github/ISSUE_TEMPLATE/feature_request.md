@@ -1,6 +1,6 @@
 ---
-name: Demande de fonctionnalité
-about: Suggérer une idée pour ce projet
+name: "✨ Demande de fonctionnalité"
+about: "Proposer une nouvelle idée ou une amélioration."
 title: "[FEAT] - "
 labels: enhancement
 assignees: ''
